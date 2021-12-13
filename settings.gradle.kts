@@ -1,0 +1,1 @@
+rootProject.name = "kaudio-python"

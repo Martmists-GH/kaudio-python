@@ -1,0 +1,3 @@
+git+https://github.com/tamasmuncsan/NodeGraphQt.git@patch-1
+PySide2
+sounddevice
