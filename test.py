@@ -14,8 +14,8 @@ def get_bounds(fft_results: np.ndarray, samplerate: int):
 def show_response(filter):
     samplerate = 48000
     size = 1024
-    in_node = kaudio.InputNode()
-    out_node = kaudio.OutputNode()
+    in_node = kaudio.InputNode(True)
+    out_node = kaudio.OutputNode(True)
     in_node.connect_stereo(filter)
     filter.connect_stereo(out_node)
     in_node.buffer_left = [1] + ([0] * 1023)

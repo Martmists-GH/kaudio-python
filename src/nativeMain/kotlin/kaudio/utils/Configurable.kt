@@ -7,14 +7,17 @@ import pywrapper.builders.makePyType
 import pywrapper.ext.cast
 import pywrapper.ext.incref
 import pywrapper.ext.kt
+import pywrapper.toKotlin
+import pywrapper.toPython
 import kotlin.collections.set
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 
 abstract class Configurable {
     internal val attrs = mutableMapOf<String, Property<*>>()
 
-    inner class Property<T>(private val name: String, private var value: T) {
+    inner class Property<T : Any>(private var value: T, val type: KClass<T>) {
         fun get(): T {
             return value
         }
@@ -32,11 +35,14 @@ abstract class Configurable {
         }
     }
 
-    fun <T> attribute(name: String, value: T): Property<T> {
-        val prop = Property(name, value)
+    @PublishedApi
+    internal fun <T : Any> attribute(name: String, default: T, type: KClass<T>): Property<T> {
+        val prop = Property(default, type)
         attrs[name] = prop
         return prop
     }
+
+    inline fun <reified T : Any> attribute(name: String, default: T): Property<T> = attribute(name, default, T::class)
 }
 
 private val initConfigurable = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
@@ -49,66 +55,25 @@ private val initConfigurable = staticCFunction { self: PyObjectT, args: PyObject
 
 private val getattroConfigurable = staticCFunction { self: PyObjectT, attr: PyObjectT ->
     val obj = self!!.kt.cast<Configurable>()
-    val name = _PyUnicode_AsString!!.invoke(attr)!!.toKString()
+    val name = attr.toKotlin<String>()
     val attrObj = obj.attrs[name]
 
     if (attrObj != null) {
-        val nativeValue = attrObj.get()
-        when (nativeValue) {
-            is Int -> PyLong_FromLong(nativeValue.toLong())
-            is Long -> PyLong_FromLong(nativeValue)
-            is Float -> PyFloat_FromDouble(nativeValue.toDouble())
-            is Double -> PyFloat_FromDouble(nativeValue)
-            is String -> PyUnicode_FromString(nativeValue)
-            is Boolean -> PyBool_FromLong(if (nativeValue) 1 else 0)
-            is FloatArray -> {
-                val pyList = PyList_New(nativeValue.size.convert())
-                for (i in nativeValue.indices) {
-                    PyList_SetItem(pyList, i.convert(), PyFloat_FromDouble(nativeValue[i].toDouble()))
-                }
-                pyList
-            }
-            is CPointer<*> -> nativeValue as PyObjectT
-            else -> {
-                PyErr_SetString(
-                    PyExc_TypeError,
-                    "Unable to convert native type to type ${nativeValue!!::class.qualifiedName}"
-                )
-                null
-            }
-        }
+        attrObj.get().toPython().incref()
     } else {
         PyObject_GenericGetAttr(self, attr)
-    }.incref()
+    }
 }
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
 private val setattroConfigurable = staticCFunction { self: PyObjectT, attr: PyObjectT, value: PyObjectT ->
     val obj = self!!.kt.cast<Configurable>()
-    val name = _PyUnicode_AsString!!.invoke(attr)!!.toKString()
+    val name = attr.toKotlin<String>()
     val attrObj = obj.attrs[name]
 
     if (attrObj != null) {
-        val new = when (val nativeValue = attrObj.get()) {
-            is Int -> PyLong_AsLong(value).toInt()
-            is Long -> PyLong_AsLong(value)
-            is Float -> PyFloat_AsDouble(value).toFloat()
-            is Double -> PyFloat_AsDouble(value)
-            is String -> _PyUnicode_AsString!!.invoke(value)!!.toKString()
-            is Boolean -> PyObject_IsTrue(value) == 1
-            is FloatArray -> FloatArray(nativeValue.size) { i ->
-                PyFloat_AsDouble(PyList_GetItem(value, i.convert())).toFloat()
-            }
-            is CPointer<*> -> value
-            else -> {
-                PyErr_SetString(
-                    PyExc_TypeError,
-                    "Unable to convert type ${nativeValue!!::class.qualifiedName} to a native type"
-                )
-                return@staticCFunction -1
-            }
-        }
-        (attrObj as Configurable.Property<Any?>).set(new)
+        val new = value.toKotlin(attrObj.type)
+        (attrObj as Configurable.Property<Any>).set(new)
         0
     } else {
         PyObject_GenericSetAttr(self, attr, value)

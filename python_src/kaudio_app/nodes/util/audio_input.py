@@ -1,12 +1,14 @@
 from time import sleep
 
 import kaudio
+from PySide2.QtWidgets import QWidget
 
 from kaudio_app.nodes.abstract.base_node import BaseNode
 from kaudio_app.sounddevice_handler import device_map, open_stream
 
 
 class AudioInput(BaseNode):
+    __identifier__ = BaseNode.__identifier__ + ".standard"
     NODE_NAME = "Audio Input"
 
     def __init__(self):
@@ -14,8 +16,6 @@ class AudioInput(BaseNode):
 
         super().__init__()
         self.stream = None
-
-        self.add_combo_menu("device", "Input device", [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2])
 
     def __del__(self):
         if self.stream is not None:
@@ -81,3 +81,7 @@ class AudioInput(BaseNode):
                 self.node.buffer = list(arr[:1024, 0])
 
         self.node.process()
+
+    def configure_config_widget(self, widget: QWidget):
+        super().configure_config_widget(widget)
+        self.config_combobox("device", "Input device", [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2], widget)

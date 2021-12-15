@@ -1,12 +1,16 @@
 from math import floor
 from threading import Lock
 
-from NodeGraphQt import NodeGraph, setup_context_menu
+from NodeGraphQt import NodeGraph, setup_context_menu, NodesPaletteWidget
 from PySide2 import QtWidgets, QtCore
 
+from kaudio_app.nodes.effect.advanced.iir_node import IIRNode
+from kaudio_app.nodes.effect.simple.volume_node import VolumeNode
 from kaudio_app.nodes.util.audio_input import AudioInput
 from kaudio_app.nodes.util.audio_output import AudioOutput
-from kaudio_app.nodes.effect.volume_node import VolumeNode
+from kaudio_app.nodes.util.combiner import Combiner
+from kaudio_app.nodes.util.splitter import Splitter
+from kaudio_app.nodes.util.visualizer import Visualizer
 
 
 class App:
@@ -15,36 +19,82 @@ class App:
     def __init__(self):
         App.INSTANCE = self
 
+        node_types = [
+            AudioInput,
+            AudioOutput,
+            Splitter,
+            Combiner,
+
+            # Visualizer,
+
+            VolumeNode,
+            IIRNode,
+        ]
+
         self.app = QtWidgets.QApplication([])
+
         self.graph = NodeGraph()
         self.lock = Lock()
 
         setup_context_menu(self.graph)
         self.menu = self.graph.get_context_menu('graph')
+        self.node_menu = self.graph.get_context_menu('nodes')
 
-        def show_menu(graph):
-            self.graph._viewer.tab_search_set_nodes(self.graph._node_factory.names)
-            self.graph._viewer.tab_search_toggle()
-
-        self.menu.add_command("Add node", show_menu)
-
-        graph_widget = self.graph.widget
-        graph_widget.resize(1100, 800)
-        graph_widget.show()
-
-        self.graph.register_nodes([
-            AudioInput,
-            AudioOutput,
-            VolumeNode,
-        ])
-
-        self.graph.auto_layout_nodes()
-        self.graph.fit_to_selection()
+        self.graph.register_nodes(node_types)
+        self.graph.nodes_deleted.connect(lambda deleted: self.toggle_node_props(removed=deleted))
+        self.graph.node_selection_changed.connect(self.toggle_node_props)
 
         self.timer = QtCore.QTimer()
         self.timer.setInterval(floor(1024 / 48000 * 1000)-10)
         self.timer.timeout.connect(self.run_graph)
         self.timer.start()
+
+        self.nodes_palette = NodesPaletteWidget(node_graph=self.graph)
+
+        self.props_widget = QtWidgets.QWidget()
+        self.props_widget.setLayout(QtWidgets.QVBoxLayout())
+        self.props_child = QtWidgets.QTabWidget()
+        self.props_widget.layout().addWidget(self.props_child)
+        self.props_widget.setVisible(False)
+
+        layout = QtWidgets.QHBoxLayout()
+        sub_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addWidget(self.nodes_palette, 2)
+        sub_layout.addWidget(self.props_widget, 1)
+        sub_widget = QtWidgets.QWidget()
+        sub_widget.setLayout(sub_layout)
+        layout.addWidget(sub_widget, 1)
+        layout.addWidget(self.graph.widget, 3)
+
+        self.main_widget = QtWidgets.QWidget()
+        self.main_widget.setLayout(layout)
+        self.main_widget.showMaximized()
+
+        self.selected_nodes = set()
+
+    def toggle_node_props(self, added=None, removed=None):
+        added = added or []
+        removed = removed or []
+
+        self.props_widget.setVisible(False)
+
+        # Update selected nodes
+        for r in removed:
+            if r in self.selected_nodes:  # They are also selected when first added to the graph
+                self.selected_nodes.remove(r)
+        for a in added:
+            self.selected_nodes.add(a)
+
+        if len(self.selected_nodes) == 1:
+            # Create new widget
+            layout = self.props_child.parent().layout()
+            widget = self.props_child
+            new = QtWidgets.QTabWidget()
+            list(self.selected_nodes)[0].set_config_widget(new)
+            layout.replaceWidget(widget, new)
+            widget.deleteLater()
+            self.props_child = new
+            self.props_widget.setVisible(True)
 
     def nodes_ordered(self):
         visited = set()

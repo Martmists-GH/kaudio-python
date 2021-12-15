@@ -2,12 +2,14 @@ from time import sleep
 
 import kaudio
 import numpy as np
+from PySide2.QtWidgets import QWidget
 
 from kaudio_app.nodes.abstract.base_node import BaseNode
 from kaudio_app.sounddevice_handler import device_map, open_stream
 
 
 class AudioOutput(BaseNode):
+    __identifier__ = BaseNode.__identifier__ + ".standard"
     NODE_NAME = "Audio Output"
 
     def __init__(self):
@@ -15,7 +17,6 @@ class AudioOutput(BaseNode):
 
         super().__init__()
         self.stream = None
-        self.add_combo_menu("device", "Output device", [k for k, v in device_map().items() if v[0]['max_output_channels'] >= 2])
 
     def __del__(self):
         if self.stream is not None:
@@ -81,3 +82,7 @@ class AudioOutput(BaseNode):
         if self.stream.write(arr):
             print("Underflowed")
             print(self.stream.write_available)
+
+    def configure_config_widget(self, widget: QWidget):
+        super().configure_config_widget(widget)
+        self.config_combobox("device", "Output device", [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2], widget)

@@ -119,9 +119,7 @@ private val disconnect = staticCFunction { self: PyObjectT, args: PyObjectT ->
 private val connectStereo = staticCFunction { self: PyObjectT, args: PyObjectT ->
     memScoped {
         val selfKt = self!!.kt.cast<StereoNode>()
-        val outputC = allocPointerTo<ByteVar>()
         val nodeC = allocPointerTo<PyObject>()
-        val inputC = allocPointerTo<ByteVar>()
 
         if (PyArg_ParseTuple(args, "O", nodeC.ptr) == 0) {
             return@memScoped null

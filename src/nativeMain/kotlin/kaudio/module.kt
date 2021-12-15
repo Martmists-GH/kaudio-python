@@ -33,8 +33,8 @@ fun createPyKtModule(): PyObjectT {
     if (obj.addType(PyType_DualNode) < 0) return null
 
     if (obj.addType(PyType_StereoSync) < 0) return null
-    if (obj.addType(PyType_Mono2StereoNode) < 0) return null
-    if (obj.addType(PyType_Stereo2MonoNode) < 0) return null
+    if (obj.addType(PyType_SplitterNode) < 0) return null
+    if (obj.addType(PyType_CombinerNode) < 0) return null
 
     if (obj.addType(PyType_InputNode) < 0) return null
     if (obj.addType(PyType_OutputNode) < 0) return null
