@@ -36,7 +36,7 @@ def extensions():
     return [native]
 
 
-# fill_template()
+fill_template()
 build_gradle()
 
 setup(

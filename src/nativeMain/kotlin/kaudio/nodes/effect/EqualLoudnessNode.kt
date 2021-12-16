@@ -8,6 +8,8 @@ import kotlinx.cinterop.*
 import python.*
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import pywrapper.ext.arg
+import pywrapper.ext.parseKw
 
 class EqualLoudnessNode(stereo: Boolean) : DualNode(stereo) {
     private val preAmp = VolumeNode(stereo).also {
@@ -105,11 +107,13 @@ class EqualLoudnessNode(stereo: Boolean) : DualNode(stereo) {
 private val initEqualLoudnessNode = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfObj: CPointer<KtPyObject> = self?.reinterpret() ?: return@memScoped -1
-        val stereoC = alloc<IntVar>()
-        if (PyArg_ParseTuple(args, "p", stereoC.ptr) == 0) {
+
+        val parsed = args.parseKw("__init__", kwargs, "stereo")
+        if (parsed.isEmpty()) {
             return@memScoped -1
         }
-        val instance = EqualLoudnessNode(stereoC.value == 1)
+
+        val instance = EqualLoudnessNode(parsed.arg("stereo"))
         val ref = StableRef.create(instance)
         selfObj.pointed.ktObject = ref.asCPointer()
         return@memScoped 0

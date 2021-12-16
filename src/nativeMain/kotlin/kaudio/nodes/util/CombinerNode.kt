@@ -10,6 +10,8 @@ import python.PyErr_SetString
 import python.PyExc_TypeError
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import pywrapper.ext.arg
+import pywrapper.ext.parseKw
 
 class CombinerNode(private val stereo: Boolean) : BaseNode() {
     private val input1LeftDummy by input(if (stereo) "input_1_left" else "input_1")
@@ -64,13 +66,13 @@ class CombinerNode(private val stereo: Boolean) : BaseNode() {
 private val initCombinerNode = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfObj: CPointer<KtPyObject> = self?.reinterpret() ?: return@memScoped -1
-        val stereoC = alloc<IntVar>()
 
-        if (PyArg_ParseTuple(args, "p", stereoC.ptr) == 0) {
+        val parsed = args.parseKw("__init__", kwargs, "stereo")
+        if (parsed.isEmpty()) {
             return@memScoped -1
         }
 
-        val instance = CombinerNode(stereoC.value == 1)
+        val instance = CombinerNode(parsed.arg("stereo"))
         val ref = StableRef.create(instance)
         selfObj.pointed.ktObject = ref.asCPointer()
         return@memScoped 0

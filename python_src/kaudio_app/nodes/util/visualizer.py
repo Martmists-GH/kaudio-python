@@ -1,15 +1,14 @@
+from contextlib import suppress
+
 import kaudio
 import numpy as np
+import scipy.fft
 from PySide2.QtWidgets import QWidget
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from vispy.plot import PlotWidget
-from vispy.scene import SceneCanvas
+from pyqtgraph import PlotWidget, GraphicsLayoutWidget
 
 from kaudio_app.nodes.abstract.base_node import BaseNode
-
-x_signal = np.arange(0, 1024)
-x_fft = np.arange(0, 24000)
 
 
 class Visualizer(BaseNode):
@@ -19,13 +18,21 @@ class Visualizer(BaseNode):
     def __init__(self):
         super().__init__()
 
-        # TODO: Find a good plotting library
-        self.signal_figure = PlotWidget()
-        self.signal_canvas = SceneCanvas()
-        self.signal_widget = self.signal_canvas.native
+        self.colors = (
+            (0, 0, 255),
+            (0, 255, 0),
+        )
+        self.fft_size = 8000
 
-        self.fft_figure = Figure()
-        self.fft_widget = FigureCanvasQTAgg(self.fft_figure)
+        self.signal_widget = GraphicsLayoutWidget()
+        self.signal_plot = self.signal_widget.addPlot()
+        self.signal_plots = []
+        self.setup_signal_widget()
+
+        self.fft_widget = GraphicsLayoutWidget()
+        self.fft_plot = self.fft_widget.addPlot()
+        self.fft_plots = []
+        self.setup_fft_widget()
 
         self.add_tab_widget("Signal")
         self.add_tab_widget("FFT")
@@ -33,48 +40,72 @@ class Visualizer(BaseNode):
     def get_new_node(self, stereo: bool) -> kaudio.BaseNode:
         return kaudio.OutputNode(stereo)
 
+    def set_property(self, name, value):
+        super().set_property(name, value)
+        if name == "stereo":
+            self.setup_signal_widget()
+            self.setup_fft_widget()
+
+    def setup_signal_widget(self):
+        self.signal_widget = GraphicsLayoutWidget()
+        self.signal_plot = self.signal_widget.addPlot()
+        self.signal_plot.enableAutoRange('xy', False)
+        self.signal_plot.showAxis('bottom', False)
+        self.signal_plot.showAxis('left', False)
+        self.signal_plot.setXRange(0, 1024)
+        self.signal_plot.setYRange(-1, 1)
+        self.signal_plots = [
+            self.signal_plot.plot(np.zeros((1024,)), pen=self.colors[i])
+            for i in range(self.stereo + 1)
+        ]
+
+    def window(self, audio: list):
+        return list(np.bartlett(1024) * audio)
+
+
+    def setup_fft_widget(self):
+        self.fft_widget = GraphicsLayoutWidget()
+        self.fft_plot = self.fft_widget.addPlot()
+
+        self.fft_plot.showAxis('bottom', False)
+        self.fft_plot.setXRange(0, int(self.fft_size / 2))
+        self.fft_plot.setYRange(0, 1)
+        self.fft_plot.setLogMode(False, False)
+        self.fft_plot.enableAutoRange('xy', False)
+        self.fft_plots = [
+            self.fft_plot.plot(np.logspace(1, self.fft_size / 2, num=int(self.fft_size / 2)), np.zeros((int(self.fft_size / 2),)), pen=self.colors[i])
+            for i in range(self.stereo + 1)
+        ]
+
     def process(self):
         super().process()
 
-        if self.signal_widget.isVisible() or self.fft_widget.isVisible():
-            if self.stereo:
-                audio = np.array([self.node.buffer_left, self.node.buffer_right])
-            else:
-                audio = np.array([self.node.buffer])
+        with suppress(RuntimeError):
+            if self.signal_widget.isVisible() or self.fft_widget.isVisible():
+                if self.stereo:
+                    audio = np.array([self.node.buffer_left, self.node.buffer_right])
+                else:
+                    audio = np.array([self.node.buffer])
 
-            if self.signal_widget.isVisible():
-                self.plot_signal(audio)
-            if self.fft_widget.isVisible():
-                print("Plotting fft")
-                self.plot_fft(audio)
-                print("Plotting fft done")
+                if self.signal_widget.isVisible():
+                    self.plot_signal(audio)
+
+                if self.fft_widget.isVisible():
+                    self.plot_fft(audio)
 
     def plot_signal(self, audio: np.ndarray):
-        for channel in audio:
-            self.signal_figure._width_limits
-            self.signal_figure.plot(x_signal, channel)
+        for i, channel in enumerate(audio):
+            self.signal_plots[i].setData(channel)
 
     def plot_fft(self, audio: np.ndarray):
-        ax = self.signal_figure.gca()
-        lines = ax.get_lines()
-        num_channels = self.stereo + 1
-        if len(lines) != num_channels:
-            zeros = np.zeros((24000,))
-            ax.clear()
-            ax.plot([x_fft] * num_channels, [zeros] * num_channels)
-            lines = ax.get_lines()
-
-        for l, c in zip(lines, audio):
-            fft = np.abs(np.fft.fft(list(c) + [0] * (48000 - 1024))[:24000])
-            l.set_data([x_fft, fft])
+        for i, c in enumerate(audio):
+            fft = np.abs(scipy.fft.rfft(self.window(c) + [0] * (self.fft_size - 1024), axis=0))
+            self.fft_plots[i].setData(fft)
 
     def configure_signal_widget(self, widget: QWidget):
-        self.signal_figure = PlotWidget()
-        self.signal_canvas = SceneCanvas()
-        self.signal_widget = self.signal_canvas.native
+        self.setup_signal_widget()
         widget.layout().addWidget(self.signal_widget)
 
     def configure_fft_widget(self, widget: QWidget):
-        self.fft_figure = Figure()
-        self.fft_widget = FigureCanvasQTAgg(self.fft_figure)
+        self.setup_fft_widget()
         widget.layout().addWidget(self.fft_widget)

@@ -43,6 +43,8 @@ def show_response(filter):
 
 
 def main():
+    node = kaudio.IIRNode(10, True)
+    print(node)
     show_response(
         kaudio.EqualLoudnessNode(True)
     )

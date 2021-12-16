@@ -8,6 +8,7 @@ import kotlinx.cinterop.*
 import python.*
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import pywrapper.ext.*
 import pywrapper.ext.cast
 import pywrapper.ext.kt
 import pywrapper.ext.pydef
@@ -111,15 +112,13 @@ class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
 private val initIIRNode = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfObj: CPointer<KtPyObject> = self?.reinterpret() ?: return@memScoped -1
-        val orderC = alloc<IntVar>()
-        val stereoC = alloc<IntVar>()
 
-        if (PyArg_ParseTuple(args, "ip", orderC.ptr, stereoC.ptr) == 0) {
-            PyErr_SetString(PyExc_TypeError, "Expected an int")
+        val parsed = args.parseKw("__init__", kwargs, "order", "stereo")
+        if (parsed.isEmpty()) {
             return@memScoped -1
         }
 
-        val instance = IIRNode(orderC.value, stereoC.value == 1)
+        val instance = IIRNode(parsed.arg("order"), parsed.arg("stereo"))
         val ref = StableRef.create(instance)
         selfObj.pointed.ktObject = ref.asCPointer()
         return@memScoped 0
@@ -127,31 +126,36 @@ private val initIIRNode = staticCFunction { self: PyObjectT, args: PyObjectT, kw
 }
 
 
-private val fromCoeffs = staticCFunction { cls: PyObjectT, args: PyObjectT ->
+private fun get_PyType_IIRNode(): PyObjectT = PyType_IIRNode.ptr.reinterpret()
+
+
+private val fromCoeffs = staticCFunction { dummy: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
-        val aC = allocPointerTo<PyObject>()
-        val bC = allocPointerTo<PyObject>()
-        val stereoC = alloc<IntVar>()
-        if (PyArg_ParseTuple(args, "OOp", bC.ptr, aC.ptr, stereoC.ptr) == 0) {
+
+        val parsed = args.parseKw("from_coeffs", kwargs, "coeffs_b", "coeffs_a", "stereo")
+        if (parsed.isEmpty()) {
             return@memScoped null
         }
 
-        val coeffsA = (0 until PyList_Size(aC.value)).map {
-            PyFloat_AsDouble(PyList_GetItem(aC.value, it)).toFloat()
-        }.toFloatArray()
-        val coeffsB = (0 until PyList_Size(bC.value)).map {
-            PyFloat_AsDouble(PyList_GetItem(bC.value, it)).toFloat()
-        }.toFloatArray()
+        val coeffsA = parsed.arg<FloatArray>("coeffs_a")
+        val coeffsB = parsed.arg<FloatArray>("coeffs_b")
 
-        val obj = PyObject_Call(cls, Py_BuildValue("iO", coeffsA.size, if (stereoC.value == 1) Py_True else Py_False), null)
+        val cls = get_PyType_IIRNode()
+
+        val obj = cls(
+            Py_BuildValue("iO", coeffsA.size, if (parsed.arg("stereo")) Py_True else Py_False),
+            null
+        )
+
         val node = obj!!.kt.cast<IIRNode>()
+
         node.apply {
-            (attrs["coeffs_a"] as Configurable.Property<FloatArray>).set(coeffsA)
-            (attrs["coeffs_b"] as Configurable.Property<FloatArray>).set(coeffsB)
+            getAttributeByName<FloatArray>("coeffs_a").set(coeffsA)
+            getAttributeByName<FloatArray>("coeffs_b").set(coeffsB)
         }
         obj
     }
-}.pydef("from_coeffs", "Create IIRNode from coefficients", METH_STATIC or METH_VARARGS)
+}.pydef("from_coeffs", "Create IIRNode from coefficients", METH_STATIC or METH_VARARGS or METH_KEYWORDS)
 
 
 val PyType_IIRNode = makePyType<IIRNode>(

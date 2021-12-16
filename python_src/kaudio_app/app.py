@@ -2,7 +2,8 @@ from math import floor
 from threading import Lock
 
 from NodeGraphQt import NodeGraph, setup_context_menu, NodesPaletteWidget
-from PySide2 import QtWidgets, QtCore
+from PySide2.QtCore import QTimer, Qt
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication, QHBoxLayout, QMainWindow
 
 from kaudio_app.nodes.effect.advanced.iir_node import IIRNode
 from kaudio_app.nodes.effect.simple.volume_node import VolumeNode
@@ -25,13 +26,14 @@ class App:
             Splitter,
             Combiner,
 
-            # Visualizer,
+            Visualizer,
 
             VolumeNode,
             IIRNode,
         ]
 
-        self.app = QtWidgets.QApplication([])
+        self.app = QApplication([])
+        self.window = QMainWindow()
 
         self.graph = NodeGraph()
         self.lock = Lock()
@@ -40,37 +42,52 @@ class App:
         self.menu = self.graph.get_context_menu('graph')
         self.node_menu = self.graph.get_context_menu('nodes')
 
+        for _type in node_types:
+            self.node_menu.add_command("Popout Menu", func=self.popout_widget, node_class=_type)
+
         self.graph.register_nodes(node_types)
         self.graph.nodes_deleted.connect(lambda deleted: self.toggle_node_props(removed=deleted))
         self.graph.node_selection_changed.connect(self.toggle_node_props)
 
-        self.timer = QtCore.QTimer()
+        self.timer = QTimer()
         self.timer.setInterval(floor(1024 / 48000 * 1000)-10)
         self.timer.timeout.connect(self.run_graph)
         self.timer.start()
 
         self.nodes_palette = NodesPaletteWidget(node_graph=self.graph)
 
-        self.props_widget = QtWidgets.QWidget()
-        self.props_widget.setLayout(QtWidgets.QVBoxLayout())
-        self.props_child = QtWidgets.QTabWidget()
+        self.props_widget = QWidget()
+        self.props_widget.setLayout(QVBoxLayout())
+        self.props_child = QTabWidget()
         self.props_widget.layout().addWidget(self.props_child)
         self.props_widget.setVisible(False)
 
-        layout = QtWidgets.QHBoxLayout()
-        sub_layout = QtWidgets.QVBoxLayout()
+        layout = QHBoxLayout()
+        sub_layout = QVBoxLayout()
         sub_layout.addWidget(self.nodes_palette, 2)
         sub_layout.addWidget(self.props_widget, 1)
-        sub_widget = QtWidgets.QWidget()
+        sub_widget = QWidget()
         sub_widget.setLayout(sub_layout)
         layout.addWidget(sub_widget, 1)
         layout.addWidget(self.graph.widget, 3)
 
-        self.main_widget = QtWidgets.QWidget()
+        self.main_widget = QWidget()
         self.main_widget.setLayout(layout)
-        self.main_widget.showMaximized()
+
+        self.window.setCentralWidget(self.main_widget)
+        self.window.showMaximized()
 
         self.selected_nodes = set()
+
+    def popout_widget(self, graph, node):
+        popup = QWidget()
+        popup.setWindowTitle("Node Properties")
+        popup.setLayout(QVBoxLayout())
+        widget = QTabWidget()
+        node.set_config_widget(widget)
+        popup.layout().addWidget(widget)
+        popup.setWindowFlag(Qt.WindowStaysOnTopHint)
+        popup.show()
 
     def toggle_node_props(self, added=None, removed=None):
         added = added or []
@@ -89,7 +106,7 @@ class App:
             # Create new widget
             layout = self.props_child.parent().layout()
             widget = self.props_child
-            new = QtWidgets.QTabWidget()
+            new = QTabWidget()
             list(self.selected_nodes)[0].set_config_widget(new)
             layout.replaceWidget(widget, new)
             widget.deleteLater()

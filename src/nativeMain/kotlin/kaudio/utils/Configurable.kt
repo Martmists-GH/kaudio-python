@@ -43,6 +43,7 @@ abstract class Configurable {
     }
 
     inline fun <reified T : Any> attribute(name: String, default: T): Property<T> = attribute(name, default, T::class)
+    fun <T: Any> getAttributeByName(name: String) = attrs[name]!! as Property<T>
 }
 
 private val initConfigurable = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->

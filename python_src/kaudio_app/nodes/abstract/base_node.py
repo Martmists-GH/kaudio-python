@@ -94,10 +94,12 @@ class BaseNode(NodeGraphQt.BaseNode):
         def get():
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
-            scroll.setLayout(QVBoxLayout())
-            scroll.layout().setAlignment(Qt.AlignTop)
             scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            getattr(self, f"configure_{name.lower()}_widget")(scroll)
+            widget = QWidget()
+            widget.setLayout(QVBoxLayout())
+            widget.layout().setAlignment(Qt.AlignTop)
+            scroll.setWidget(widget)
+            getattr(self, f"configure_{name.lower()}_widget")(widget)
             return scroll
         self.tabs[name] = get
 

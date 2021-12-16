@@ -8,6 +8,7 @@ import kotlinx.cinterop.*
 import python.*
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import pywrapper.ext.*
 import pywrapper.ext.cast
 import pywrapper.ext.incref
 import pywrapper.ext.kt
@@ -67,71 +68,71 @@ abstract class BaseNode : Configurable() {
     abstract fun process()
 }
 
-// Exists only to solve a recursive type check
 private fun getPyType_BaseNode(): PyObjectT = PyType_BaseNode.ptr.reinterpret()
 
-private val connect = staticCFunction { self: PyObjectT, args: PyObjectT ->
+private val connect = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfKt = self!!.kt.cast<BaseNode>()
-        val outputC = allocPointerTo<ByteVar>()
-        val nodeC = allocPointerTo<PyObject>()
-        val inputC = allocPointerTo<ByteVar>()
 
-        if (PyArg_ParseTuple(args, "sOs", outputC.ptr, nodeC.ptr, inputC.ptr) == 0) {
-            return@memScoped null
+        val parsed = args.parseKw("connect", kwargs, "output", "node", "input")
+        if (parsed.isEmpty()) {
+            return@staticCFunction null
         }
 
-        if (PyObject_IsInstance(nodeC.value, getPyType_BaseNode()) != 1) {
-            PyErr_SetString(PyExc_TypeError, "Expected parameter 2 to be a BaseNode")
+        if (PyObject_IsInstance(parsed.arg("node"), getPyType_BaseNode()) != 1) {
+            PyErr_SetString(PyExc_TypeError, "Expected parameter 2 to be a subclass of BaseNode")
             return@memScoped null
         }
 
         selfKt.connect(
-            outputC.value!!.toKStringFromUtf8(),
-            nodeC.value!!.kt.cast(),
-            inputC.value!!.toKStringFromUtf8()
+            parsed.arg("output"),
+            parsed.arg<CPointer<PyObject>>("node").kt.cast(),
+            parsed.arg("input")
         )
 
         Py_None.incref()
     }
-}.pydef("connect", "Connects the output to the input of another node", METH_VARARGS)
+}.pydef("connect", "Connects the output to the input of another node", METH_VARARGS or METH_KEYWORDS)
 
 
-private val disconnect = staticCFunction { self: PyObjectT, args: PyObjectT ->
+private val disconnect = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfKt = self!!.kt.cast<BaseNode>()
-        val outputC = allocPointerTo<ByteVar>()
 
-        if (PyArg_ParseTuple(args, "s", outputC.ptr) == 0) {
-            return@memScoped null
+        val parsed = args.parseKw("disconnect", kwargs, "output")
+        if (parsed.isEmpty()) {
+            return@staticCFunction null
         }
 
-        selfKt.clearOutput(outputC.value!!.toKStringFromUtf8())
-        selfKt.disconnect(outputC.value!!.toKStringFromUtf8())
-
-        // TODO: Empty output
+        val output = parsed.arg<String>("output")
+        selfKt.clearOutput(output)
+        selfKt.disconnect(output)
 
         Py_None.incref()
     }
-}.pydef("disconnect", "Disconnects the output", METH_VARARGS)
+}.pydef("disconnect", "Disconnects the output", METH_VARARGS or METH_KEYWORDS)
 
 
-private val connectStereo = staticCFunction { self: PyObjectT, args: PyObjectT ->
+private val connectStereo = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfKt = self!!.kt.cast<StereoNode>()
-        val nodeC = allocPointerTo<PyObject>()
 
-        if (PyArg_ParseTuple(args, "O", nodeC.ptr) == 0) {
+        val parsed = args.parseKw("connect_stereo", kwargs, "node")
+        if (parsed.isEmpty()) {
+            return@staticCFunction null
+        }
+
+        val nodePy = parsed.arg<CPointer<PyObject>>("node")
+
+        if (PyObject_IsInstance(nodePy, getPyType_BaseNode()) != 1) {
+            PyErr_SetString(PyExc_TypeError, "Expected parameter 2 to be a subclass of BaseNode")
             return@memScoped null
         }
 
-//        if (PyObject_IsInstance(nodeC.value, getPyType_StereoNode()) != 1) {
-//            PyErr_SetString(PyExc_TypeError, "Expected parameter 0 to be a StereoNode")
-//            return@memScoped null
-//        }
+        val node = nodePy.kt.cast<BaseNode>()
 
-        selfKt.connect("output_left", nodeC.value!!.kt.cast(), "input_left")
-        selfKt.connect("output_right", nodeC.value!!.kt.cast(), "input_right")
+        selfKt.connect("output_left", node, "input_left")
+        selfKt.connect("output_right", node, "input_right")
 
         Py_None.incref()
     }

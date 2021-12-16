@@ -8,6 +8,8 @@ import python.KtPyObject
 import python.PyArg_ParseTuple
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import pywrapper.ext.arg
+import pywrapper.ext.parseKw
 
 class SplitterNode(private val stereo: Boolean) : BaseNode() {
     private val inputLeftDummy by input(if (stereo) "input_left" else "input")
@@ -64,13 +66,13 @@ class SplitterNode(private val stereo: Boolean) : BaseNode() {
 private val initSplitterNode = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
         val selfObj: CPointer<KtPyObject> = self?.reinterpret() ?: return@memScoped -1
-        val stereoC = alloc<IntVar>()
 
-        if (PyArg_ParseTuple(args, "p", stereoC.ptr) == 0) {
+        val parsed = args.parseKw("__init__", kwargs, "stereo")
+        if (parsed.isEmpty()) {
             return@memScoped -1
         }
 
-        val instance = SplitterNode(stereoC.value == 1)
+        val instance = SplitterNode(parsed.arg("stereo"))
         val ref = StableRef.create(instance)
         selfObj.pointed.ktObject = ref.asCPointer()
         return@memScoped 0
