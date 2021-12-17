@@ -5,6 +5,7 @@ import kaudio
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCheckBox, QComboBox
 
+from kaudio_app.ui.popout import PopoutWidget
 from kaudio_app.ui.props import IntSlider, ComboBox, FloatSlider
 
 
@@ -12,6 +13,7 @@ class BaseNode(NodeGraphQt.BaseNode):
     __identifier__ = "kaudio"
 
     def __init__(self):
+        self.popped_out = False
         self.stereo = True
 
         super().__init__()
@@ -21,6 +23,25 @@ class BaseNode(NodeGraphQt.BaseNode):
 
         self.tabs = {}
         self.add_tab_widget("Config")
+        self.popup = None
+
+    def popout(self):
+        if not self.popped_out:
+            self.popped_out = True
+            self.popup = popup = PopoutWidget()
+            popup.on_close.connect(self.on_popout_close)
+            popup.setWindowTitle("Node Properties")
+            popup.setLayout(QVBoxLayout())
+            widget = QTabWidget()
+            self.set_config_widget(widget)
+            popup.layout().addWidget(widget)
+            popup.setWindowFlag(Qt.WindowCloseButtonHint)
+            popup.setWindowFlag(Qt.WindowMinimizeButtonHint)
+            popup.show()
+
+    def on_popout_close(self):
+        self.popped_out = False
+        self.popup = None
 
     def on_input_connected(self, in_port, out_port):
         # print(f"Connecting {out_port.node().node}:{out_port.name()} to {in_port.node().node}:{in_port.name()}")
@@ -81,8 +102,8 @@ class BaseNode(NodeGraphQt.BaseNode):
         _widget.on_set.connect(lambda new: self.set_property(name, new))
         widget.layout().addWidget(_widget)
         
-    def config_combobox(self, name: str, label: str, options: list, widget: QWidget):
-        combo = ComboBox(label, options)
+    def config_combobox(self, name: str, label: str, value, options: list, widget: QWidget):
+        combo = ComboBox(label, value, options)
         combo.on_set.connect(lambda new: self.set_property(name, new))
         widget.layout().addWidget(combo)
 

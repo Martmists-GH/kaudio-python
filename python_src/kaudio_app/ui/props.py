@@ -49,13 +49,14 @@ class FloatSlider(IntSlider):
 class ComboBox(QWidget):
     on_set = Signal(str)
 
-    def __init__(self, label: str, options: list):
+    def __init__(self, label: str, value: str, options: list):
         super().__init__()
         self.setLayout(QHBoxLayout())
 
         _label = QLabel(label)
         combo = QComboBox()
         combo.addItems(options)
+        combo.setCurrentText(value)
 
         combo.currentTextChanged.connect(lambda x: self.on_set.emit(x))
 

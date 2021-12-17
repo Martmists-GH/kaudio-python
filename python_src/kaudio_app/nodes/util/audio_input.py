@@ -16,6 +16,7 @@ class AudioInput(BaseNode):
 
         super().__init__()
         self.stream = None
+        self.set_property("device", "default")
 
     def __del__(self):
         if self.stream is not None:
@@ -84,4 +85,4 @@ class AudioInput(BaseNode):
 
     def configure_config_widget(self, widget: QWidget):
         super().configure_config_widget(widget)
-        self.config_combobox("device", "Input device", [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2], widget)
+        self.config_combobox("device", "Input device", self.device, [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2], widget)

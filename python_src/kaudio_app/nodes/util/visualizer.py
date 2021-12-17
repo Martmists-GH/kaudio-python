@@ -2,13 +2,12 @@ from contextlib import suppress
 
 import kaudio
 import numpy as np
-import scipy.fft
 from PySide2.QtWidgets import QWidget
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-from pyqtgraph import PlotWidget, GraphicsLayoutWidget
+from pyqtgraph import GraphicsLayoutWidget, setConfigOptions, ViewBox
 
 from kaudio_app.nodes.abstract.base_node import BaseNode
+
+setConfigOptions(antialias=True)
 
 
 class Visualizer(BaseNode):
@@ -49,7 +48,8 @@ class Visualizer(BaseNode):
     def setup_signal_widget(self):
         self.signal_widget = GraphicsLayoutWidget()
         self.signal_plot = self.signal_widget.addPlot()
-        self.signal_plot.enableAutoRange('xy', False)
+        self.signal_plot.setMenuEnabled(False)
+        self.signal_plot.disableAutoRange(ViewBox.XYAxes)
         self.signal_plot.showAxis('bottom', False)
         self.signal_plot.showAxis('left', False)
         self.signal_plot.setXRange(0, 1024)
@@ -62,20 +62,28 @@ class Visualizer(BaseNode):
     def window(self, audio: list):
         return list(np.bartlett(1024) * audio)
 
-
     def setup_fft_widget(self):
         self.fft_widget = GraphicsLayoutWidget()
         self.fft_plot = self.fft_widget.addPlot()
 
+        self.fft_plot.disableAutoRange(ViewBox.XYAxes)
+        self.fft_plot.setMenuEnabled(False)
+        self.fft_plot.setAutoVisible(False, False)
+        self.fft_plot.setAutoPan(False, False)
+        # self.fft_plot.showAxis('left', False)
         self.fft_plot.showAxis('bottom', False)
-        self.fft_plot.setXRange(0, int(self.fft_size / 2))
-        self.fft_plot.setYRange(0, 1)
-        self.fft_plot.setLogMode(False, False)
-        self.fft_plot.enableAutoRange('xy', False)
-        self.fft_plots = [
-            self.fft_plot.plot(np.logspace(1, self.fft_size / 2, num=int(self.fft_size / 2)), np.zeros((int(self.fft_size / 2),)), pen=self.colors[i])
-            for i in range(self.stereo + 1)
-        ]
+        self.fft_plot.setXRange(0, int(self.fft_size / 2), padding=0)
+        self.fft_plot.setYRange(0, 1, padding=0)
+        self.fft_plot.setLogMode(True, False)
+        self.fft_plots = []
+        for i in range(self.stereo + 1):
+            fig = self.fft_plot.plot(np.zeros((self.fft_size,)), pen=self.colors[i])
+            fig.setFftMode(True)
+            self.fft_plots.append(fig)
+        # self.fft_plots = [
+        #     self.fft_plot.plot(np.logspace(1, self.fft_size / 2, num=int(self.fft_size / 2)), np.zeros((int(self.fft_size / 2),)), pen=self.colors[i])
+        #     for i in range(self.stereo + 1)
+        # ]
 
     def process(self):
         super().process()
@@ -99,8 +107,9 @@ class Visualizer(BaseNode):
 
     def plot_fft(self, audio: np.ndarray):
         for i, c in enumerate(audio):
-            fft = np.abs(scipy.fft.rfft(self.window(c) + [0] * (self.fft_size - 1024), axis=0))
-            self.fft_plots[i].setData(fft)
+            self.fft_plots[i].setData(c)
+            # fft = np.abs(scipy.fft.rfft(self.window(c) + [0] * (self.fft_size - 1024), axis=0))
+            # self.fft_plots[i].setData(fft)
 
     def configure_signal_widget(self, widget: QWidget):
         self.setup_signal_widget()

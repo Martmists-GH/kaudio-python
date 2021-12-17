@@ -12,6 +12,7 @@ from kaudio_app.nodes.util.audio_output import AudioOutput
 from kaudio_app.nodes.util.combiner import Combiner
 from kaudio_app.nodes.util.splitter import Splitter
 from kaudio_app.nodes.util.visualizer import Visualizer
+from kaudio_app.ui.popout import PopoutWidget
 
 
 class App:
@@ -68,8 +69,8 @@ class App:
         sub_layout.addWidget(self.props_widget, 1)
         sub_widget = QWidget()
         sub_widget.setLayout(sub_layout)
-        layout.addWidget(sub_widget, 1)
-        layout.addWidget(self.graph.widget, 3)
+        layout.addWidget(sub_widget, 4)
+        layout.addWidget(self.graph.widget, 10)
 
         self.main_widget = QWidget()
         self.main_widget.setLayout(layout)
@@ -80,14 +81,7 @@ class App:
         self.selected_nodes = set()
 
     def popout_widget(self, graph, node):
-        popup = QWidget()
-        popup.setWindowTitle("Node Properties")
-        popup.setLayout(QVBoxLayout())
-        widget = QTabWidget()
-        node.set_config_widget(widget)
-        popup.layout().addWidget(widget)
-        popup.setWindowFlag(Qt.WindowStaysOnTopHint)
-        popup.show()
+        node.popout()
 
     def toggle_node_props(self, added=None, removed=None):
         added = added or []
@@ -104,14 +98,16 @@ class App:
 
         if len(self.selected_nodes) == 1:
             # Create new widget
-            layout = self.props_child.parent().layout()
-            widget = self.props_child
-            new = QTabWidget()
-            list(self.selected_nodes)[0].set_config_widget(new)
-            layout.replaceWidget(widget, new)
-            widget.deleteLater()
-            self.props_child = new
-            self.props_widget.setVisible(True)
+            node = list(self.selected_nodes)[0]
+            if not node.popped_out:
+                layout = self.props_child.parent().layout()
+                widget = self.props_child
+                new = QTabWidget()
+                node.set_config_widget(new)
+                layout.replaceWidget(widget, new)
+                widget.deleteLater()
+                self.props_child = new
+                self.props_widget.setVisible(True)
 
     def nodes_ordered(self):
         visited = set()
