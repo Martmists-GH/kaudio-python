@@ -86,7 +86,7 @@ class BaseNode(NodeGraphQt.BaseNode):
 
     def process(self):
         self.node.process()
-        profile_growth(f"{self.__class__.__name__}.process")
+        # profile_growth(f"{self.__class__.__name__}.process")
 
     def config_checkbox(self, name: str, label: str, value: bool, widget: QWidget):
         checkbox = QCheckBox(label)

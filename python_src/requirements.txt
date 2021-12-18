@@ -1,9 +1,18 @@
+# GUI
 git+https://github.com/tamasmuncsan/NodeGraphQt.git@patch-1
 PySide2
+
+# Audio
 sounddevice
+
+# Plotting
+matplotlib  # TODO: Remove
+pyqtgraph
+
+# Debugging
+objgraph
+
+# Math
 numpy
 scipy
-matplotlib
-pyqtgraph
-# cupy
-objgraph
+# cupy  # Only for CUDA GPUs

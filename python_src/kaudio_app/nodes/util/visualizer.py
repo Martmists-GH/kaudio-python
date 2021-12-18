@@ -23,7 +23,7 @@ class Visualizer(BaseNode):
             (0, 0, 255),
             (0, 255, 0),
         )
-        self.fft_size = 8000 if (backend == np) else 20000
+        self.fft_size = 8000 if (backend == np) else 12000  # based gpu
 
         self.signal_widget = GraphicsLayoutWidget()
         self.signal_plot = self.signal_widget.addPlot()
@@ -53,6 +53,7 @@ class Visualizer(BaseNode):
         self.signal_widget = GraphicsLayoutWidget()
         self.signal_plot = self.signal_widget.addPlot()
         self.signal_plot.setMenuEnabled(False)
+        self.signal_plot.setMouseEnabled(False, False)
         self.signal_plot.showAxis('bottom', False)
         self.signal_plot.showAxis('left', False)
         self.signal_plot.setXRange(0, 1024)
@@ -63,12 +64,13 @@ class Visualizer(BaseNode):
         ]
 
     def window(self, audio):
-        return np.bartlett(1024) * audio
+        return np.blackman(1024) * audio
 
     def setup_fft_widget(self):
         self.fft_widget = GraphicsLayoutWidget()
         self.fft_plot = self.fft_widget.addPlot()
         self.fft_plot.setMenuEnabled(False)
+        self.fft_plot.setMouseEnabled(False, False)
         self.fft_plot.showAxis('left', False)
         self.fft_plot.showAxis('bottom', False)
         self.fft_plot.setYRange(0, 0.02, padding=0)
@@ -87,24 +89,25 @@ class Visualizer(BaseNode):
                     audio = np.array([self.node.buffer_left, self.node.buffer_right])
                 else:
                     audio = np.array([self.node.buffer])
-                profile_growth("convert to numpy.ndarray")
+                # profile_growth("convert to numpy.ndarray")
 
                 if self.signal_widget.isVisible():
                     self.plot_signal(audio)
-                    profile_growth("plot")
+                    # profile_growth("plot")
 
                 if self.fft_widget.isVisible():
-                    self.fft_enabled = (self.fft_enabled + 1) % 2
+                    self.fft_enabled = (self.fft_enabled + 1) % 1
                     if self.fft_enabled == 0:
 
                         self.plot_fft(audio)
-                        profile_growth("plot")
+                        # profile_growth("plot")
 
     def plot_signal(self, audio: np.ndarray):
         for i in range(self.stereo + 1):
             self.signal_plots[i].setData(audio[i])
 
     def plot_fft(self, audio: np.ndarray):
+        audio = audio - np.mean(audio)
         max_value = np.max(np.abs(audio))
         if max_value == 0:
             max_value = 1
