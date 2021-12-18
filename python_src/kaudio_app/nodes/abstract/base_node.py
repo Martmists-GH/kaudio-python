@@ -3,10 +3,11 @@ from typing import Tuple
 import NodeGraphQt
 import kaudio
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCheckBox, QComboBox
+from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCheckBox
 
 from kaudio_app.ui.popout import PopoutWidget
 from kaudio_app.ui.props import IntSlider, ComboBox, FloatSlider
+from kaudio_app.obj_profile import profile_growth
 
 
 class BaseNode(NodeGraphQt.BaseNode):
@@ -85,6 +86,7 @@ class BaseNode(NodeGraphQt.BaseNode):
 
     def process(self):
         self.node.process()
+        profile_growth(f"{self.__class__.__name__}.process")
 
     def config_checkbox(self, name: str, label: str, value: bool, widget: QWidget):
         checkbox = QCheckBox(label)

@@ -60,7 +60,7 @@ private val getattroConfigurable = staticCFunction { self: PyObjectT, attr: PyOb
     val attrObj = obj.attrs[name]
 
     if (attrObj != null) {
-        attrObj.get().toPython().incref()
+        attrObj.get().toPython()
     } else {
         PyObject_GenericGetAttr(self, attr)
     }

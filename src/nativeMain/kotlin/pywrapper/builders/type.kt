@@ -25,7 +25,7 @@ internal inline fun <reified T> makePyType(
     ktp_getattro: getattrofunc? = null,
     ktp_setattro: setattrofunc? = null,
     ktp_as_buffer: Map<String, FuncPtr<*>>? = null,
-    ktp_flags: ULong = (Py_TPFLAGS_DEFAULT or Py_TPFLAGS_BASETYPE).convert(),
+    ktp_flags: ULong = (Py_TPFLAGS_DEFAULT.toULong() or Py_TPFLAGS_BASETYPE.toULong()).convert(),
     ktp_doc: String? = null,
     ktp_traverse: traverseproc? = null,
     ktp_clear: inquiry? = null,

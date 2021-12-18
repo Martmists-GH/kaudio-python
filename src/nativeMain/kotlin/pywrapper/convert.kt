@@ -61,14 +61,14 @@ fun <T> T.toPython() : PyObjectT {
         is FloatArray -> {
             val list = PyList_New(this.size.convert())
             for (i in 0 until this.size) {
-                PyList_SetItem(list, i.toLong(), this[i].toPython())
+                PyList_SetItem(list, i.convert(), this[i].toPython())
             }
             list
         }
         is IntArray -> {
             val list = PyList_New(this.size.convert())
             for (i in 0 until this.size) {
-                PyList_SetItem(list, i.toLong(), this[i].toPython())
+                PyList_SetItem(list, i.convert(), this[i].toPython())
             }
             list
         }

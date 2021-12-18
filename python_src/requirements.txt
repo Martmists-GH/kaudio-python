@@ -5,4 +5,5 @@ numpy
 scipy
 matplotlib
 pyqtgraph
-cupy
+# cupy
+objgraph

@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 from setuptools import setup, Extension
 import sysconfig
@@ -6,6 +7,9 @@ import sysconfig
 osname = platform.system()
 paths = sysconfig.get_paths()
 debug = True
+
+if sys.version_info < (3, 8):
+    os.waitstatus_to_exitcode = lambda x: 0
 
 
 def fill_template():
@@ -21,7 +25,8 @@ def build_gradle():
         if os.waitstatus_to_exitcode(os.system("./gradlew build")) != 0:
             raise Exception("Build failed")
     else:
-        raise NotImplementedError(osname)
+        if os.waitstatus_to_exitcode(os.system("./gradlew.bat build")) != 0:
+            raise Exception("Build failed")
 
 
 def extensions():
