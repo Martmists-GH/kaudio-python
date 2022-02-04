@@ -16,7 +16,7 @@ class AudioInput(BaseNode):
 
         super().__init__()
         self.stream = None
-        self.set_property("device", "default")
+        self.set_property("device", [k for k, v in device_map().items() if v[0]['max_input_channels'] >= 2][0])
 
     def __del__(self):
         if self.stream is not None:

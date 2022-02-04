@@ -88,18 +88,28 @@ class EqualLoudnessNode(stereo: Boolean) : DualNode(stereo) {
     }
 
     override fun processStereo() {
+        val preL = preAmp.inputLeft
+        val preR = preAmp.inputRight
+        val inL = inputLeft
+        val inR = inputRight
+
         for (i in 0 until FRAME_SIZE) {
-            preAmp.inputLeft[i] = inputLeft[i]
-            preAmp.inputRight[i] = inputRight[i]
+            preL[i] = inL[i]
+            preR[i] = inR[i]
         }
 
         preAmp.process()
         butterworth.process()
         yulewalk.process()
 
+        val outL = outputLeft
+        val outR = outputRight
+        val dummyL = dummy.inputLeft
+        val dummyR = dummy.inputRight
+
         for (i in 0 until FRAME_SIZE) {
-            outputLeft[i] = dummy.inputLeft[i]
-            outputRight[i] = dummy.inputRight[i]
+            outL[i] = dummyL[i]
+            outR[i] = dummyR[i]
         }
     }
 }

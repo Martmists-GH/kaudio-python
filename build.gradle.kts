@@ -40,8 +40,3 @@ val compileKotlinNative by tasks.getting {
 val install by tasks.register<Exec>("install") {
     commandLine = listOf("pip3", "install", "-U", ".")
 }
-
-val test by tasks.register<Exec>("test") {
-    dependsOn(install)
-    commandLine = listOf("valgrind", "--tool=callgrind", "python", "test.py")
-}

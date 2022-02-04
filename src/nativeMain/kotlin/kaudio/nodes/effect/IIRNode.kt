@@ -1,6 +1,7 @@
 package kaudio.nodes.effect
 
 import kaudio.FRAME_SIZE
+import kaudio.nodes.abstract.BaseNode
 import kaudio.nodes.abstract.DualNode
 import kaudio.nodes.abstract.PyType_DualNode
 import kaudio.utils.Configurable
@@ -28,46 +29,74 @@ class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
         coeffsB[0] = 1f
     }
 
+    fun reset() {
+        x.fill(0f)
+        y.fill(0f)
+        x2.fill(0f)
+        y2.fill(0f)
+    }
+
     override fun processMono() {
+        val order = order
+        val a = coeffsA
+        val b = coeffsB
+        val x = x
+        val y = y
+        val out = output
+        val inp = input
+
         for (i in 0 until FRAME_SIZE) {
             var res = 0f
 
             for (j in 1..order) {
-                val coeffA = coeffsA[j]
-                val coeffB = coeffsB[j]
+                val coeffA = a[j]
+                val coeffB = b[j]
 
                 res += coeffB * x[j - 1] - coeffA * y[j - 1]
             }
 
-            res = (res + coeffsB[0] * input[i]) / coeffsA[0]
+            res = (res + b[0] * inp[i]) / a[0]
 
             for (j in order downTo 1) {
                 x[j] = x[j - 1]
                 y[j] = y[j - 1]
             }
 
-            x[0] = input[i]
+            x[0] = inp[i]
             y[0] = res
 
-            output[i] = res
+            out[i] = res
         }
     }
 
     override fun processStereo() {
+        val order = order
+        val a = coeffsA
+        val b = coeffsB
+        val x = x
+        val y = y
+        val x2 = x2
+        val y2 = y2
+        val outL = outputLeft
+        val outR = outputRight
+        val inL = inputLeft
+        val inR = inputRight
+
+
         for (i in 0 until FRAME_SIZE) {
             var resL = 0f
             var resR = 0f
 
             for (j in 1..order) {
-                val coeffA = coeffsA[j]
-                val coeffB = coeffsB[j]
+                val coeffA = a[j]
+                val coeffB = b[j]
 
                 resL += coeffB * x[j - 1] - coeffA * y[j - 1]
                 resR += coeffB * x2[j - 1] - coeffA * y2[j - 1]
             }
 
-            resL = (resL + coeffsB[0] * inputLeft[i]) / coeffsA[0]
-            resR = (resR + coeffsB[0] * inputRight[i]) / coeffsA[0]
+            resL = (resL + b[0] * inL[i]) / a[0]
+            resR = (resR + b[0] * inR[i]) / a[0]
 
             for (j in order downTo 1) {
                 x[j] = x[j - 1]
@@ -76,13 +105,13 @@ class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
                 y2[j] = y2[j - 1]
             }
 
-            x[0] = inputLeft[i]
-            x2[0] = inputRight[i]
+            x[0] = inL[i]
+            x2[0] = inR[i]
             y[0] = resL
             y2[0] = resR
 
-            outputLeft[i] = resL
-            outputRight[i] = resR
+            outL[i] = resL
+            outR[i] = resR
         }
     }
 
@@ -158,10 +187,18 @@ private val fromCoeffs = staticCFunction { dummy: PyObjectT, args: PyObjectT, kw
 }.pydef("from_coeffs", "Create IIRNode from coefficients", METH_STATIC or METH_VARARGS or METH_KEYWORDS)
 
 
+private val reset = staticCFunction { self: PyObjectT, args: PyObjectT ->
+    val selfKt = self!!.kt.cast<IIRNode>()
+    selfKt.reset()
+    Py_None.incref()
+}.pydef("reset", "Reset IIRNode history")
+
+
 val PyType_IIRNode = makePyType<IIRNode>(
     ktp_base = PyType_DualNode.reinterpret(),
     ktp_init = initIIRNode,
     ktp_methods = listOf(
-        fromCoeffs
+        fromCoeffs,
+        reset,
     )
 )

@@ -28,9 +28,14 @@ class InputNode(stereo: Boolean) : DualNode(stereo) {
     }
 
     override fun processStereo() {
+        val outL = outputLeft
+        val outR = outputRight
+        val bufL = bufLeft
+        val bufR = bufRight
+
         for (i in 0 until FRAME_SIZE) {
-            outputLeft[i] = bufLeft[i]
-            outputRight[i] = bufRight[i]
+            outL[i] = bufL[i]
+            outR[i] = bufR[i]
         }
     }
 
