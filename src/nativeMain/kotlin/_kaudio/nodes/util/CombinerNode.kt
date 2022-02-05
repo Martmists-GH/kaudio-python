@@ -15,10 +15,10 @@ class CombinerNode(private val stereo: Boolean) : BaseNode() {
     private val input1RightDummy by input(if (stereo) "input_1_right" else "input_1 invalid")
     private val input2LeftDummy by input(if (stereo) "input_2_left" else "input_2")
     private val input2RightDummy by input(if (stereo) "input_2_right" else "input_2 invalid")
-    
+
     private val outputLeftDummy by output(if (stereo) "output_left" else "output")
     private val outputRightDummy by output(if (stereo) "output_right" else "output invalid")
-    
+
     private val input1: FloatArray
         get() = if (stereo) throw IllegalStateException("CombinerNode is in stereo mode") else input1LeftDummy
     private val inputLeft1: FloatArray
@@ -32,14 +32,14 @@ class CombinerNode(private val stereo: Boolean) : BaseNode() {
         get() = if (stereo) input2LeftDummy else throw IllegalStateException("CombinerNode is in mono mode")
     private val inputRight2: FloatArray
         get() = if (stereo) input2RightDummy else throw IllegalStateException("CombinerNode is in mono mode")
-    
+
     private val output: FloatArray
         get() = if (stereo) throw IllegalStateException("CombinerNode is in stereo mode") else outputLeftDummy
     private val outputLeft: FloatArray
         get() = if (stereo) outputLeftDummy else throw IllegalStateException("CombinerNode is in mono mode")
     private val outputRight: FloatArray
         get() = if (stereo) outputRightDummy else throw IllegalStateException("CombinerNode is in mono mode")
-    
+
     init {
         removeInput("input_1 invalid")
         removeInput("input_2 invalid")

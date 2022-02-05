@@ -1,7 +1,7 @@
+import kaudio
 from PySide2.QtWidgets import QWidget
 
 from kaudio_app.nodes.abstract.base_node import BaseNode
-import kaudio
 
 
 class VolumeNode(BaseNode):

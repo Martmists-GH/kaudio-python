@@ -5,9 +5,8 @@ import numpy as np
 from PySide2.QtWidgets import QWidget
 from pyqtgraph import GraphicsLayoutWidget, setConfigOptions
 
-from kaudio_app.nodes.abstract.base_node import BaseNode
 from kaudio_app.cupy_support import backend, to_backend, from_backend
-from kaudio_app.obj_profile import profile_growth
+from kaudio_app.nodes.abstract.base_node import BaseNode
 
 setConfigOptions(antialias=True)
 
@@ -99,7 +98,6 @@ class Visualizer(BaseNode):
                 if self.fft_widget.isVisible():
                     self.fft_enabled = (self.fft_enabled + 1) % 1
                     if self.fft_enabled == 0:
-
                         self.plot_fft(audio)
                         # profile_growth("plot")
 

@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from PySide2.QtCore import Qt, Signal
-from PySide2.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QSlider, QComboBox, QWidget
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QSlider, QComboBox, QWidget
 
 
 class IntSlider(QWidget):

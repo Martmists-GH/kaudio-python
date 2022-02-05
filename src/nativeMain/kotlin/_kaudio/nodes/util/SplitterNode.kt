@@ -3,6 +3,7 @@ package _kaudio.nodes.util
 import _kaudio.FRAME_SIZE
 import _kaudio.nodes.abstract.BaseNode
 import _kaudio.nodes.abstract.PyType_BaseNode
+import _kaudio.utils.copyStereo
 import kotlinx.cinterop.*
 import python.KtPyObject
 import pywrapper.PyObjectT
@@ -61,14 +62,7 @@ class SplitterNode(private val stereo: Boolean) : BaseNode() {
                 out2R[i] = inR[i]
             }
         } else {
-            val `in` = input
-            val out1 = output1
-            val out2 = output2
-
-            for (i in 0 until FRAME_SIZE) {
-                out1[i] = `in`[i]
-                out2[i] = `in`[i]
-            }
+            copyStereo(input, input, output1, output2)
         }
     }
 }

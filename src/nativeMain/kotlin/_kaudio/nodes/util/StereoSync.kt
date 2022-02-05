@@ -5,6 +5,7 @@ import _kaudio.nodes.abstract.MonoNode
 import _kaudio.nodes.abstract.PyType_MonoNode
 import _kaudio.nodes.abstract.PyType_StereoNode
 import _kaudio.nodes.abstract.StereoNode
+import _kaudio.utils.copyStereo
 import kotlinx.cinterop.*
 import python.*
 import pywrapper.PyObjectT
@@ -23,29 +24,12 @@ class StereoSync(private val left: MonoNode, private val right: MonoNode) : Ster
     }
 
     override fun process() {
-        val inL = inputLeft
-        val inR = inputRight
-        val outL = left.input
-        val outR = right.input
-
-
-        for (i in 0 until FRAME_SIZE) {
-            outL[i] = inL[i]
-            outR[i] = inR[i]
-        }
+        copyStereo(inputLeft, inputRight, left.input, right.input)
 
         left.process()
         right.process()
 
-        val outL2 = outputLeft
-        val outR2 = outputRight
-        val dummyL = dummy.inputLeft
-        val dummyR = dummy.inputRight
-
-        for (i in 0 until FRAME_SIZE) {
-            outL2[i] = dummyL[i]
-            outR2[i] = dummyR[i]
-        }
+        copyStereo(dummy.inputLeft, dummy.inputRight, outputLeft, outputRight)
     }
 }
 

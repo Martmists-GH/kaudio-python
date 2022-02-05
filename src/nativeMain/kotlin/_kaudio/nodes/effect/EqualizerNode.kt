@@ -1,17 +1,18 @@
 package _kaudio.nodes.effect
 
-import _kaudio.FRAME_SIZE
 import _kaudio.nodes.abstract.DualNode
 import _kaudio.nodes.abstract.PyType_DualNode
-import _kaudio.utils.BiquadType
 import _kaudio.nodes.util.DummyNode
+import _kaudio.utils.BiquadType
+import _kaudio.utils.copyStereo
 import _kaudio.utils.makeBiquad
 import kotlinx.cinterop.*
 import platform.posix.powf
 import python.KtPyObject
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
-import pywrapper.ext.*
+import pywrapper.ext.arg
+import pywrapper.ext.parseKw
 import kotlin.math.roundToInt
 
 class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
@@ -25,7 +26,13 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
                     makeBiquad(BiquadType.HIGHSHELF, stereo, 16383, it[index], node)
                 }
                 else -> {
-                    makeBiquad(BiquadType.PEAK, stereo, (32 * powf(2f, index.toFloat()) - 1).roundToInt(), it[index], node)
+                    makeBiquad(
+                        BiquadType.PEAK,
+                        stereo,
+                        (32 * powf(2f, index.toFloat()) - 1).roundToInt(),
+                        it[index],
+                        node
+                    )
                 }
             }
         }
@@ -56,7 +63,7 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
         inputs.entries.forEach { (input, output) ->
             nodes.forEachIndexed { i, node ->
                 if (i != nodes.lastIndex) {
-                    node.connect(output, nodes[i+1], input)
+                    node.connect(output, nodes[i + 1], input)
                 } else {
                     node.connect(output, outNode, input)
                 }
@@ -71,17 +78,11 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
     }
 
     override fun processStereo() {
-        for (i in 0 until FRAME_SIZE) {
-            nodes[0].inputLeft[i] = inputLeft[i]
-            nodes[0].inputRight[i] = inputRight[i]
-        }
+        copyStereo(inputLeft, inputRight, nodes[0].inputLeft, nodes[0].inputRight)
 
         nodes.forEach { it.process() }
 
-        for (i in 0 until FRAME_SIZE) {
-            outputLeft[i] = outNode.inputLeft[i]
-            outputRight[i] = outNode.inputRight[i]
-        }
+        copyStereo(outNode.inputLeft, outNode.inputRight, outputLeft, outputRight)
     }
 }
 
@@ -93,7 +94,7 @@ private val initEqualizerNode = staticCFunction { self: PyObjectT, args: PyObjec
         if (parsed.isEmpty()) {
             return@memScoped -1
         }
-        
+
         val instance = EqualizerNode(parsed.arg("stereo"))
         val ref = StableRef.create(instance)
         selfObj.pointed.ktObject = ref.asCPointer()

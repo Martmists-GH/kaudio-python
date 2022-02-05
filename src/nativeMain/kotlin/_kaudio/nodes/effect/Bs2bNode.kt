@@ -19,7 +19,7 @@ class Bs2bNode : StereoNode(), NeedsFree {
         bs2b_set_level(config, BS2B_DEFAULT_CLEVEL)
     }
 
-    private val frequency by attribute("level", bs2b_get_level_fcut(config)) {
+    private val frequency by attribute("frequency", bs2b_get_level_fcut(config)) {
         bs2b_set_level_fcut(config, it)
     }
     private val feed by attribute("feed", bs2b_get_level_feed(config)) {
@@ -27,14 +27,19 @@ class Bs2bNode : StereoNode(), NeedsFree {
     }
 
     override fun process() {
+        val inL = inputLeft
+        val inR = inputRight
+        val outL = outputLeft
+        val outR = outputRight
+
         for (i in 0 until FRAME_SIZE) {
-            buffer[0] = inputLeft[i]
-            buffer[1] = inputRight[i]
+            buffer[0] = inL[i]
+            buffer[1] = inR[i]
 
             bs2b_cross_feed_f(config, buffer, 1)
 
-            outputLeft[i] = buffer[0]
-            outputRight[i] = buffer[1]
+            outL[i] = buffer[0]
+            outR[i] = buffer[1]
         }
     }
 

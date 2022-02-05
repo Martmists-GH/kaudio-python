@@ -2,8 +2,6 @@ package pywrapper.builders
 
 import kotlinx.cinterop.*
 import platform.posix.memcpy
-import python.METH_CLASS
-import python.METH_STATIC
 
 internal inline fun makeString(content: String): CPointer<ByteVar> {
     val src = content.cstr

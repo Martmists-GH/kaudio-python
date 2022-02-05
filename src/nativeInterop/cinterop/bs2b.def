@@ -1,4 +1,5 @@
 headers = bs2b.h
-package = bs2b
+staticLibraries = libbs2b.a
 compilerOpts = -I./libraries/bs2b/src
-linkerOpts = -L./libraries/bs2b/build/lib/main/debug/ -lbs2b
+libraryPaths = ./libraries/bs2b/build/lib/main/release
+

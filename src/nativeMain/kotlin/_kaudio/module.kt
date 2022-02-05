@@ -1,13 +1,7 @@
 package _kaudio
 
-import _kaudio.nodes.abstract.PyType_BaseNode
-import _kaudio.nodes.abstract.PyType_DualNode
-import _kaudio.nodes.abstract.PyType_MonoNode
-import _kaudio.nodes.abstract.PyType_StereoNode
-import _kaudio.nodes.effect.PyType_EqualLoudnessNode
-import _kaudio.nodes.effect.PyType_EqualizerNode
-import _kaudio.nodes.effect.PyType_IIRNode
-import _kaudio.nodes.effect.PyType_VolumeNode
+import _kaudio.nodes.abstract.*
+import _kaudio.nodes.effect.*
 import _kaudio.nodes.util.*
 import _kaudio.utils.PyType_Configurable
 import kotlinx.cinterop.ptr
@@ -41,6 +35,7 @@ fun createPyKtModule(): PyObjectT {
     if (obj.addType(PyType_OutputNode) < 0) return null
 
     if (obj.addType(PyType_IIRNode) < 0) return null
+    if (obj.addType(PyType_ButterworthNode) < 0) return null
     if (obj.addType(PyType_VolumeNode) < 0) return null
     if (obj.addType(PyType_EqualizerNode) < 0) return null
     if (obj.addType(PyType_EqualLoudnessNode) < 0) return null

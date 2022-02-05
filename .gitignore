@@ -220,3 +220,4 @@ cython_debug/
 ### Custom
 python.def
 .python-version
+/kaudio/

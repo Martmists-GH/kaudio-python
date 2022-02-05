@@ -7,7 +7,6 @@ from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCh
 
 from kaudio_app.ui.popout import PopoutWidget
 from kaudio_app.ui.props import IntSlider, ComboBox, FloatSlider
-from kaudio_app.obj_profile import profile_growth
 
 
 class BaseNode(NodeGraphQt.BaseNode):
@@ -103,7 +102,7 @@ class BaseNode(NodeGraphQt.BaseNode):
         _widget = FloatSlider(label, value, range)
         _widget.on_set.connect(lambda new: self.set_property(name, new))
         widget.layout().addWidget(_widget)
-        
+
     def config_combobox(self, name: str, label: str, value, options: list, widget: QWidget):
         combo = ComboBox(label, value, options)
         combo.on_set.connect(lambda new: self.set_property(name, new))
@@ -124,6 +123,7 @@ class BaseNode(NodeGraphQt.BaseNode):
             scroll.setWidget(widget)
             getattr(self, f"configure_{name.lower()}_widget")(widget)
             return scroll
+
         self.tabs[name] = get
 
     def set_config_widget(self, widget: QTabWidget):

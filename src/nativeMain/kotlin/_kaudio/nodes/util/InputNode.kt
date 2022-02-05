@@ -3,6 +3,7 @@ package _kaudio.nodes.util
 import _kaudio.FRAME_SIZE
 import _kaudio.nodes.abstract.DualNode
 import _kaudio.nodes.abstract.PyType_DualNode
+import _kaudio.utils.copyStereo
 import kotlinx.cinterop.*
 import python.KtPyObject
 import pywrapper.PyObjectT
@@ -25,15 +26,7 @@ class InputNode(stereo: Boolean) : DualNode(stereo) {
     }
 
     override fun processStereo() {
-        val outL = outputLeft
-        val outR = outputRight
-        val bufL = bufLeft
-        val bufR = bufRight
-
-        for (i in 0 until FRAME_SIZE) {
-            outL[i] = bufL[i]
-            outR[i] = bufR[i]
-        }
+        copyStereo(bufLeft, bufRight, outputLeft, outputRight)
     }
 
     override fun processMono() {

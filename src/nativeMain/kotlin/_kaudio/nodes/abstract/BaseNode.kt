@@ -9,10 +9,6 @@ import python.*
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
 import pywrapper.ext.*
-import pywrapper.ext.cast
-import pywrapper.ext.incref
-import pywrapper.ext.kt
-import pywrapper.ext.pydef
 
 val DUMMY_ARRAY = FloatArray(FRAME_SIZE) { 0f }
 

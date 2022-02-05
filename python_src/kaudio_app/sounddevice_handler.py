@@ -5,8 +5,10 @@ LATENCY = 'low'
 
 def once(callback):
     result = callback()
+
     def ret():
         return result
+
     return ret
 
 

@@ -6,11 +6,7 @@ PySide2
 sounddevice
 
 # Plotting
-matplotlib  # TODO: Remove
 pyqtgraph
-
-# Debugging
-objgraph
 
 # Math
 numpy

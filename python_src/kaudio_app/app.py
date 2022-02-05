@@ -2,10 +2,12 @@ from math import floor
 from threading import Lock
 
 from NodeGraphQt import NodeGraph, setup_context_menu, NodesPaletteWidget
-from PySide2.QtCore import QTimer, Qt
+from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication, QHBoxLayout, QMainWindow
 
+from kaudio_app.nodes.effect.advanced.biquad_node import ButterworthNode
 from kaudio_app.nodes.effect.advanced.iir_node import IIRNode
+from kaudio_app.nodes.effect.simple.bs2b_node import Bs2bNode
 from kaudio_app.nodes.effect.simple.equal_loudness_node import EqualLoudnessNode
 from kaudio_app.nodes.effect.simple.volume_node import VolumeNode
 from kaudio_app.nodes.util.audio_input import AudioInput
@@ -31,9 +33,10 @@ class App:
 
             EqualLoudnessNode,
             VolumeNode,
-            EqualLoudnessNode,
+            Bs2bNode,
 
             IIRNode,
+            ButterworthNode,
         ]
 
         self.app = QApplication([])
@@ -54,7 +57,7 @@ class App:
         self.graph.node_selection_changed.connect(self.toggle_node_props)
 
         self.timer = QTimer()
-        self.timer.setInterval(floor(1024 / 48000 * 1000)-10)
+        self.timer.setInterval(floor(1024 / 48000 * 1000) - 10)
         self.timer.timeout.connect(self.run_graph)
         self.timer.start()
 

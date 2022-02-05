@@ -1,7 +1,12 @@
 package _kaudio.utils
 
-import kotlinx.cinterop.*
-import python.*
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import python.PyErr_SetString
+import python.PyExc_NotImplementedError
+import python.PyObject_GenericGetAttr
+import python.PyObject_GenericSetAttr
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
 import pywrapper.ext.cast
@@ -17,7 +22,7 @@ import kotlin.reflect.typeOf
 abstract class Configurable {
     internal val attrs = mutableMapOf<String, Property<*>>()
 
-    inner class Property<T : Any>(private var value: T, val type: KType, private val onSet : (T) -> Unit = {}) {
+    inner class Property<T : Any>(private var value: T, val type: KType, private val onSet: (T) -> Unit = {}) {
         fun get(): T {
             return value
         }
@@ -44,8 +49,10 @@ abstract class Configurable {
         return prop
     }
 
-    inline fun <reified T : Any> attribute(name: String, default: T, noinline onSet: (T) -> Unit = {}): Property<T> = attribute(name, default, typeOf<T>(), onSet)
-    fun <T: Any> getAttributeByName(name: String) = attrs[name]!! as Property<T>
+    inline fun <reified T : Any> attribute(name: String, default: T, noinline onSet: (T) -> Unit = {}): Property<T> =
+        attribute(name, default, typeOf<T>(), onSet)
+
+    fun <T : Any> getAttributeByName(name: String) = attrs[name]!! as Property<T>
 }
 
 private val initConfigurable = staticCFunction { self: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->

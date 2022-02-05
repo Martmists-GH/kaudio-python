@@ -8,11 +8,8 @@ import python.*
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
 import pywrapper.ext.*
-import pywrapper.ext.cast
-import pywrapper.ext.kt
-import pywrapper.ext.pydef
 
-class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
+open class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
     private val coeffsA by attribute("coeffs_a", FloatArray(order + 1) { 0f }) {
         reset()
     }
@@ -122,11 +119,11 @@ class IIRNode(private val order: Int, stereo: Boolean) : DualNode(stereo) {
             coeffsA: FloatArray,
             coeffsB: FloatArray,
             stereo: Boolean
-        ) : IIRNode {
+        ): IIRNode {
             var coeffsA = coeffsA
 
             if (coeffsA.size + 1 == coeffsB.size) {
-                coeffsA = FloatArray(coeffsB.size) { if (it == 0) 1f else coeffsA[it-1] }
+                coeffsA = FloatArray(coeffsB.size) { if (it == 0) 1f else coeffsA[it - 1] }
             }
             if (coeffsA.size != coeffsB.size) {
                 throw IllegalArgumentException("Coeffs must have the same size")

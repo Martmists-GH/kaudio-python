@@ -2,12 +2,13 @@ package pywrapper
 
 import kotlinx.cinterop.*
 import python.*
-import kotlin.reflect.*
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
 
-inline fun <reified R : Any> PyObjectT.toKotlin() : R = toKotlin(typeOf<R>())
+inline fun <reified R : Any> PyObjectT.toKotlin(): R = toKotlin(typeOf<R>())
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
-fun <R : Any> PyObjectT.toKotlin(type: KType?) : R {
+fun <R : Any> PyObjectT.toKotlin(type: KType?): R {
     val clazz = type?.classifier
 
     return when (clazz) {
@@ -78,7 +79,7 @@ fun <R : Any> PyObjectT.toKotlin(type: KType?) : R {
     } as R
 }
 
-fun <T> T.toPython() : PyObjectT {
+fun <T> T.toPython(): PyObjectT {
     return when (this) {
         null -> Py_None
         is Int -> PyLong_FromLong(this.toLong())

@@ -3,9 +3,6 @@ package pywrapper.builders
 import kotlinx.cinterop.*
 import python.*
 import pywrapper.*
-import pywrapper.KtType_StableRefRepr
-import pywrapper.PyType_GenericAllocKt
-import pywrapper.PyType_GenericNewKt
 import pywrapper.ext.PyVarObject_HEAD_INIT
 
 

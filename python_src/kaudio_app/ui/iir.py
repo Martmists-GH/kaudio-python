@@ -1,6 +1,6 @@
 from PySide2.QtCore import Signal
 from PySide2.QtGui import QDoubleValidator
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QGroupBox, QVBoxLayout
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout
 
 
 class IIRRow(QWidget):
@@ -46,9 +46,9 @@ class IIRWidget(QWidget):
         group_b = QWidget()
         group_b.setLayout(QVBoxLayout())
 
-        for i in range(order+1):
+        for i in range(order + 1):
             row_a = IIRRow(self, f"a{i}", i)
-            row_b = IIRRow(self, f"b{i}", i+order+1)
+            row_b = IIRRow(self, f"b{i}", i + order + 1)
             row_a.set_value.connect(lambda value, index: self.set_value.emit(value, index))
             row_b.set_value.connect(lambda value, index: self.set_value.emit(value, index))
             group_a.layout().addWidget(row_a)

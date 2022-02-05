@@ -16,14 +16,15 @@ enum class BiquadType {
     HIGHSHELF
 }
 
-fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, node: IIRNode? = null) : IIRNode {
+fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, node: IIRNode? = null): IIRNode {
     val coeffsA = FloatArray(3) { 0f }
     val coeffsB = FloatArray(3) { 0f }
     val A = dbToAmp(gainDB)
+    val Q = 0.737f
     val w0 = 2 * PI * fc / 48000f
     val cosw0 = cos(w0)
     val sinw0 = sin(w0)
-    val alpha = sinw0 / (2 * sqrt(2.0))
+    val alpha = sinw0 / (sqrt(2.0) / 2)
 
     when (type) {
         BiquadType.LOWPASS -> {

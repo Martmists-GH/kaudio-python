@@ -22,6 +22,24 @@ class IIRNode(DualNode, _kaudio.IIRNode):
         return _kaudio.IIRNode.from_coeffs(coeffs_b, coeffs_a, stereo)
 
 
+class ButterworthNode(IIRNode, _kaudio.ButterworthNode):
+    def __init__(self, stereo: bool):
+        super(IIRNode, self).__init__(stereo)
+
+    def make_butterworth(self, type: str, freq: int, gain: float):
+        """
+        Valid types:
+                LOWPASS
+                HIGHPASS
+                BANDPASS
+                NOTCH
+                PEAK
+                LOWSHELF
+                HIGHSHELF
+        """
+        super(IIRNode, self).make_butterworth(type, freq, gain)
+
+
 class EqualLoudnessNode(DualNode, _kaudio.EqualLoudnessNode):
     def __init__(self, stereo: bool):
         super(DualNode, self).__init__(stereo)

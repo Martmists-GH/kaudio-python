@@ -4,8 +4,9 @@ import _kaudio.FRAME_SIZE
 import _kaudio.nodes.abstract.DualNode
 import _kaudio.nodes.abstract.PyType_DualNode
 import _kaudio.nodes.util.DummyNode
+import _kaudio.utils.copyStereo
 import kotlinx.cinterop.*
-import python.*
+import python.KtPyObject
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
 import pywrapper.ext.arg
@@ -88,29 +89,13 @@ class EqualLoudnessNode(stereo: Boolean) : DualNode(stereo) {
     }
 
     override fun processStereo() {
-        val preL = preAmp.inputLeft
-        val preR = preAmp.inputRight
-        val inL = inputLeft
-        val inR = inputRight
-
-        for (i in 0 until FRAME_SIZE) {
-            preL[i] = inL[i]
-            preR[i] = inR[i]
-        }
+        copyStereo(inputLeft, inputRight, preAmp.inputLeft, preAmp.inputRight)
 
         preAmp.process()
         butterworth.process()
         yulewalk.process()
 
-        val outL = outputLeft
-        val outR = outputRight
-        val dummyL = dummy.inputLeft
-        val dummyR = dummy.inputRight
-
-        for (i in 0 until FRAME_SIZE) {
-            outL[i] = dummyL[i]
-            outR[i] = dummyR[i]
-        }
+        copyStereo(dummy.inputLeft, dummy.inputRight, outputLeft, outputRight)
     }
 }
 

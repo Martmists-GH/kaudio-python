@@ -31,17 +31,32 @@ operator fun PyObjectT.get(key: Any) = this.get(key.toPython())
 operator fun PyObjectT.set(key: PyObjectT, value: PyObjectT) = PyObject_SetItem(this, key, value)
 operator fun PyObjectT.set(key: PyObjectT, value: Any) = this.set(key, value.toPython())
 
-operator fun PyObjectT.plusAssign(other: PyObjectT) { PyNumber_InPlaceAdd(this, other) }
+operator fun PyObjectT.plusAssign(other: PyObjectT) {
+    PyNumber_InPlaceAdd(this, other)
+}
+
 operator fun PyObjectT.plusAssign(other: Any) = this.plusAssign(other.toPython())
 
-operator fun PyObjectT.minusAssign(other: PyObjectT) { PyNumber_InPlaceSubtract(this, other) }
+operator fun PyObjectT.minusAssign(other: PyObjectT) {
+    PyNumber_InPlaceSubtract(this, other)
+}
+
 operator fun PyObjectT.minusAssign(other: Any) = this.minusAssign(other.toPython())
 
-operator fun PyObjectT.timesAssign(other: PyObjectT) { PyNumber_InPlaceMultiply(this, other) }
+operator fun PyObjectT.timesAssign(other: PyObjectT) {
+    PyNumber_InPlaceMultiply(this, other)
+}
+
 operator fun PyObjectT.timesAssign(other: Any) = this.timesAssign(other.toPython())
 
-operator fun PyObjectT.divAssign(other: PyObjectT) { PyNumber_InPlaceTrueDivide(this, other) }
+operator fun PyObjectT.divAssign(other: PyObjectT) {
+    PyNumber_InPlaceTrueDivide(this, other)
+}
+
 operator fun PyObjectT.divAssign(other: Any) = this.divAssign(other.toPython())
 
-operator fun PyObjectT.remAssign(other: PyObjectT) { PyNumber_InPlaceRemainder(this, other) }
+operator fun PyObjectT.remAssign(other: PyObjectT) {
+    PyNumber_InPlaceRemainder(this, other)
+}
+
 operator fun PyObjectT.remAssign(other: Any) = this.remAssign(other.toPython())

@@ -86,4 +86,5 @@ class AudioOutput(BaseNode):
 
     def configure_config_widget(self, widget: QWidget):
         super().configure_config_widget(widget)
-        self.config_combobox("device", "Output device", self.device, [k for k, v in device_map().items() if v[0]['max_output_channels'] >= 2], widget)
+        self.config_combobox("device", "Output device", self.device,
+                             [k for k, v in device_map().items() if v[0]['max_output_channels'] >= 2], widget)
