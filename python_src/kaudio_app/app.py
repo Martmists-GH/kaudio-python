@@ -13,7 +13,6 @@ from kaudio_app.nodes.util.audio_output import AudioOutput
 from kaudio_app.nodes.util.combiner import Combiner
 from kaudio_app.nodes.util.splitter import Splitter
 from kaudio_app.nodes.util.visualizer import Visualizer
-from kaudio_app.ui.popout import PopoutWidget
 
 
 class App:
@@ -32,6 +31,8 @@ class App:
 
             EqualLoudnessNode,
             VolumeNode,
+            EqualLoudnessNode,
+
             IIRNode,
         ]
 

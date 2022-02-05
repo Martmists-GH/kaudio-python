@@ -23,17 +23,28 @@ class StereoSync(private val left: MonoNode, private val right: MonoNode) : Ster
     }
 
     override fun process() {
+        val inL = inputLeft
+        val inR = inputRight
+        val outL = left.input
+        val outR = right.input
+
+
         for (i in 0 until FRAME_SIZE) {
-            left.input[i] = inputLeft[i]
-            right.input[i] = inputRight[i]
+            outL[i] = inL[i]
+            outR[i] = inR[i]
         }
 
         left.process()
         right.process()
 
+        val outL2 = outputLeft
+        val outR2 = outputRight
+        val dummyL = dummy.inputLeft
+        val dummyR = dummy.inputRight
+
         for (i in 0 until FRAME_SIZE) {
-            outputLeft[i] = dummy.inputLeft[i]
-            outputRight[i] = dummy.inputRight[i]
+            outL2[i] = dummyL[i]
+            outR2[i] = dummyR[i]
         }
     }
 }

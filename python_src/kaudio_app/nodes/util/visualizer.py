@@ -23,7 +23,7 @@ class Visualizer(BaseNode):
             (0, 0, 255),
             (0, 255, 0),
         )
-        self.fft_size = 8000 if (backend == np) else 12000  # based gpu
+        self.fft_size = 8000 if (backend == np) else 16000  # based gpu
 
         self.signal_widget = GraphicsLayoutWidget()
         self.signal_plot = self.signal_widget.addPlot()
@@ -73,7 +73,8 @@ class Visualizer(BaseNode):
         self.fft_plot.setMouseEnabled(False, False)
         self.fft_plot.showAxis('left', False)
         self.fft_plot.showAxis('bottom', False)
-        self.fft_plot.setYRange(0, 0.02, padding=0)
+        self.fft_plot.setYRange(0, 0.03, padding=0)
+        self.fft_plot.setXRange(0.5, 3.6, padding=0)
         self.fft_plots = []
         for i in range(self.stereo + 1):
             fig = self.fft_plot.plot(np.zeros((self.fft_size,)), pen=self.colors[i])
@@ -107,16 +108,17 @@ class Visualizer(BaseNode):
             self.signal_plots[i].setData(audio[i])
 
     def plot_fft(self, audio: np.ndarray):
-        audio = audio - np.mean(audio)
         max_value = np.max(np.abs(audio))
         if max_value == 0:
             max_value = 1
+        normalized = audio / max_value
 
-        for i, c in enumerate(audio):
-            self.fft_data[:1024] = to_backend(self.window(c / max_value))
+        for i, c in enumerate(normalized):
+            self.fft_data[:1024] = to_backend(self.window(c))
             self.fft_data[1024:] = backend.zeros((self.fft_size - 1024,))
-            result = backend.abs(backend.fft.rfft(self.fft_data) / self.fft_size)#[:int(self.fft_size/2)]
-            self.fft_plots[i].setData(from_backend(result)[int(self.fft_size/2000):])
+            result = backend.abs(backend.fft.rfft(self.fft_data) / self.fft_size)
+            as_np = from_backend(result)
+            self.fft_plots[i].setData(as_np)
 
     def configure_signal_widget(self, widget: QWidget):
         self.setup_signal_widget()

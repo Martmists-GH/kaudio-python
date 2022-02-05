@@ -20,6 +20,7 @@ class IIRNode(ResponseNode):
     def set_iir(self, value, index):
         coeffs = self.node.coeffs_a + self.node.coeffs_b
         coeffs[index] = value
+        self.node.reset()
         self.node.coeffs_a = coeffs[:self.order+1]
         self.node.coeffs_b = coeffs[self.order+1:]
         self.plot_response()

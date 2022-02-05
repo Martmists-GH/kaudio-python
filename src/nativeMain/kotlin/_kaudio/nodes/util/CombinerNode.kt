@@ -48,13 +48,23 @@ class CombinerNode(private val stereo: Boolean) : BaseNode() {
 
     override fun process() {
         if (stereo) {
+            val inL1 = inputLeft1
+            val inR1 = inputRight1
+            val inL2 = inputLeft2
+            val inR2 = inputRight2
+            val outL = outputLeft
+            val outR = outputRight
+
             for (i in 0 until FRAME_SIZE) {
-                outputLeft[i] = (inputLeft1[i] + inputLeft2[i]) / 2
-                outputRight[i] = (inputRight1[i] + inputRight2[i]) / 2
+                outL[i] = (inL1[i] + inL2[i]) / 2
+                outR[i] = (inR1[i] + inR2[i]) / 2
             }
         } else {
+            val in1 = input1
+            val in2 = input2
+            val out = output
             for (i in 0 until FRAME_SIZE) {
-                output[i] = (input1[i] + input2[i]) / 2
+                out[i] = (in1[i] + in2[i]) / 2
             }
         }
     }

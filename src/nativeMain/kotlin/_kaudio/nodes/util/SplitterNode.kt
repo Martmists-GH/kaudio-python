@@ -47,16 +47,27 @@ class SplitterNode(private val stereo: Boolean) : BaseNode() {
 
     override fun process() {
         if (stereo) {
+            val inL = inputLeft
+            val inR = inputRight
+            val out1L = output1Left
+            val out1R = output1Right
+            val out2L = output2Left
+            val out2R = output2Right
+
             for (i in 0 until FRAME_SIZE) {
-                output1Left[i] = inputLeft[i]
-                output1Right[i] = inputRight[i]
-                output2Left[i] = inputLeft[i]
-                output2Right[i] = inputRight[i]
+                out1L[i] = inL[i]
+                out1R[i] = inR[i]
+                out2L[i] = inL[i]
+                out2R[i] = inR[i]
             }
         } else {
+            val `in` = input
+            val out1 = output1
+            val out2 = output2
+
             for (i in 0 until FRAME_SIZE) {
-                output1[i] = input[i]
-                output2[i] = input[i]
+                out1[i] = `in`[i]
+                out2[i] = `in`[i]
             }
         }
     }

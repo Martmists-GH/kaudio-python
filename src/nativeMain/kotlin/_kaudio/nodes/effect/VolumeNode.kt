@@ -16,16 +16,24 @@ class VolumeNode(stereo: Boolean) : DualNode(stereo) {
 
     override fun processMono() {
         val amp = dbToAmp(gain)
+        val inp = input
+        val out = output
         for (i in 0 until FRAME_SIZE) {
-            output[i] = input[i] * amp
+            out[i] = inp[i] * amp
         }
     }
 
     override fun processStereo() {
         val amp = dbToAmp(gain)
+
+        val outL = outputLeft
+        val outR = outputRight
+        val inL = inputLeft
+        val inR = inputRight
+
         for (i in 0 until FRAME_SIZE) {
-            outputLeft[i] = inputLeft[i] * amp
-            outputRight[i] = inputRight[i] * amp
+            outL[i] = inL[i] * amp
+            outR[i] = inR[i] * amp
         }
     }
 }
