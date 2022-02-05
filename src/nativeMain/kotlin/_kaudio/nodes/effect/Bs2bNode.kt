@@ -44,6 +44,7 @@ class Bs2bNode : StereoNode(), NeedsFree {
     }
 
     override fun free() {
+        bs2b_close(config)
         nativeHeap.free(buffer)
     }
 }
