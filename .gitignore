@@ -4,3 +4,4 @@ build/
 *.egg-info/
 *.py[cod]
 python.def
+/kaudio/

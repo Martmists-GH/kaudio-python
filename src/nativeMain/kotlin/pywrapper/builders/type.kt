@@ -2,7 +2,7 @@ package pywrapper.builders
 
 import kotlinx.cinterop.*
 import python.*
-import pywrapper.FuncPtr
+import pywrapper.*
 import pywrapper.KtType_StableRefRepr
 import pywrapper.PyType_GenericAllocKt
 import pywrapper.PyType_GenericNewKt
@@ -15,13 +15,13 @@ internal inline fun <reified T> makePyType(
 //    ktp_getattr: getattrfunc? = null,
 //    ktp_setattr: setattrfunc? = null,
     ktp_as_async: Map<String, unaryfunc>? = null,
-    ktp_repr: reprfunc? = null,
+    ktp_repr: reprfunc? = KtType_StableRefRepr,
     ktp_as_number: Map<String, FuncPtr<*>>? = null,
     ktp_as_sequence: Map<String, FuncPtr<*>>? = null,
     ktp_as_mapping: Map<String, FuncPtr<*>>? = null,
     ktp_hash: hashfunc? = null,
     ktp_call: ternaryfunc? = null,
-    ktp_str: reprfunc? = KtType_StableRefRepr,
+    ktp_str: reprfunc? = null,
     ktp_getattro: getattrofunc? = null,
     ktp_setattro: setattrofunc? = null,
     ktp_as_buffer: Map<String, FuncPtr<*>>? = null,
@@ -42,7 +42,7 @@ internal inline fun <reified T> makePyType(
     ktp_init: initproc? = null,
     ktp_alloc: allocfunc? = PyType_GenericAllocKt,
     ktp_new: newfunc? = PyType_GenericNewKt,
-    ktp_free: freefunc? = null,
+    ktp_free: freefunc? = KtType_StableRefFree,
     ktp_is_gc: inquiry? = null,
     ktp_finalize: destructor? = null,
     ktp_vectorcall: vectorcallfunc? = null,

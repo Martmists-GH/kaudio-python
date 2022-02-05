@@ -1,4 +1,4 @@
-import kaudio.createPyKtModule
+import _kaudio.createPyKtModule
 import kotlinx.cinterop.CPointer
 import python.PyObject
 

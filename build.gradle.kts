@@ -21,9 +21,8 @@ kotlin {
 
     nativeTarget.apply {
         val main by compilations.getting
-        val python by main.cinterops.creating {
-
-        }
+        val python by main.cinterops.creating { }
+        val bs2b by main.cinterops.creating { }
 
         binaries {
             staticLib {
@@ -33,15 +32,15 @@ kotlin {
     }
 }
 
+val cinteropBs2bNative by tasks.getting {
+    dependsOn("libraries:bs2b:build")
+}
+
 val compileKotlinNative by tasks.getting {
+    dependsOn("cinteropBs2bNative")
     dependsOn("cinteropPythonNative")
 }
 
 val install by tasks.register<Exec>("install") {
     commandLine = listOf("pip3", "install", "-U", ".")
-}
-
-val test by tasks.register<Exec>("test") {
-    dependsOn(install)
-    commandLine = listOf("valgrind", "--tool=callgrind", "python", "test.py")
 }

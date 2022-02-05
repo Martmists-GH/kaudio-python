@@ -13,6 +13,12 @@ internal val PyType_GenericNewKt =
 internal val KtType_StableRefFree = staticCFunction { self: COpaquePointer? ->
     val selfObj: CPointer<KtPyObject> = self?.reinterpret() ?: return@staticCFunction
     val ref = selfObj.pointed.ktObject?.asStableRef<Any>()
+
+    val obj = ref?.get()
+    if (obj is NeedsFree) {
+        obj.free()
+    }
+
     ref?.dispose()
 }
 internal val KtType_StableRefRepr = staticCFunction { self: PyObjectT ->

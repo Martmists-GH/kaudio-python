@@ -1,0 +1,4 @@
+headers = bs2b.h
+package = bs2b
+compilerOpts = -I./libraries/bs2b/src
+linkerOpts = -L./libraries/bs2b/build/lib/main/debug/ -lbs2b

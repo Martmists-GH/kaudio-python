@@ -2,27 +2,15 @@ package pywrapper
 
 import kotlinx.cinterop.*
 import python.*
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 
-inline fun <reified R : Any> PyObjectT.toKotlin() : R = toKotlin(R::class)
-inline fun <reified T : Any> PyObjectT.toKotlinList() : List<T> = toKotlinList(T::class)
-inline fun <reified K : Any, reified V : Any> PyObjectT.toKotlinMap() : Map<K, V> = toKotlinMap(K::class, V::class)
-
-fun <T : Any> PyObjectT.toKotlinList(type: KClass<T>) : List<T> {
-    val size = PyList_Size(this)
-    return (0 until size).map { PyList_GetItem(this, it).toKotlin(type) }
-}
-
-fun <K : Any, V : Any> PyObjectT.toKotlinMap(kType: KClass<K>, vType: KClass<V>) : Map<K, V> {
-    val list = PyDict_Keys(this).toKotlinList<CPointer<PyObject>>()
-    return list.associate {
-        it.toKotlin(kType) to PyDict_GetItem(this, it).toKotlin(vType)
-    }
-}
+inline fun <reified R : Any> PyObjectT.toKotlin() : R = toKotlin(typeOf<R>())
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
-fun <R : Any> PyObjectT.toKotlin(type: KClass<R>) : R {
-    return when (type) {
+fun <R : Any> PyObjectT.toKotlin(type: KType?) : R {
+    val clazz = type?.classifier
+
+    return when (clazz) {
         Int::class -> PyLong_AsLong(this).toInt()
         Long::class -> PyLong_AsLong(this)
         Float::class -> PyFloat_AsDouble(this).toFloat()
@@ -41,11 +29,52 @@ fun <R : Any> PyObjectT.toKotlin(type: KClass<R>) : R {
                 PyList_GetItem(this, i.convert()).toKotlin()
             }
         }
-        CPointer::class, CValuesRef::class -> {
+        List::class -> {
+            val subType = type.arguments[0].type
+            val size = PyList_Size(this)
+            List(size.convert()) { i ->
+                PyList_GetItem(this, i.convert()).toKotlin(subType) as Any
+            }
+        }
+        Map::class, MutableMap::class -> {
+            val keyType = type.arguments[0].type
+            val valueType = type.arguments[1].type
+            val size = PyDict_Size(this)
+
+            val keys = PyDict_Keys(this).toKotlin<List<PyObjectT>>()
+            val map = mutableMapOf<Any, Any>()
+
+
+            for (i in 0 until size) {
+                val key = keys[i.convert()]
+                val kKey = key.toKotlin(keyType) as Any
+                val kValue = PyDict_GetItem(this, key).toKotlin(valueType) as Any
+                map[kKey] = kValue
+            }
+        }
+        Pair::class -> {
+            val firstType = type.arguments[0].type
+            val secondType = type.arguments[1].type
+
+            val first = PyTuple_GetItem(this, 0).toKotlin(firstType) as Any
+            val second = PyTuple_GetItem(this, 1).toKotlin(secondType) as Any
+            Pair(first, second)
+        }
+        Triple::class -> {
+            val firstType = type.arguments[0].type
+            val secondType = type.arguments[1].type
+            val thirdType = type.arguments[2].type
+
+            val first = PyTuple_GetItem(this, 0).toKotlin(firstType) as Any
+            val second = PyTuple_GetItem(this, 1).toKotlin(secondType) as Any
+            val third = PyTuple_GetItem(this, 2).toKotlin(thirdType) as Any
+            Triple(first, second, third)
+        }
+        CPointer::class, CValuesRef::class, null -> {
             // Assume PyObjectT
             this
         }
-        else -> throw IllegalArgumentException("Unsupported type: ${type.simpleName}")
+        else -> throw IllegalArgumentException("Unsupported type: $clazz")
     } as R
 }
 
@@ -85,6 +114,19 @@ fun <T> T.toPython() : PyObjectT {
                 PyDict_SetItem(dict, k.toPython(), v.toPython())
             }
             dict
+        }
+        is Pair<*, *> -> {
+            val tuple = PyTuple_New(2)
+            PyTuple_SetItem(tuple, 0, this.first.toPython())
+            PyTuple_SetItem(tuple, 1, this.second.toPython())
+            tuple
+        }
+        is Triple<*, *, *> -> {
+            val tuple = PyTuple_New(3)
+            PyTuple_SetItem(tuple, 0, this.first.toPython())
+            PyTuple_SetItem(tuple, 1, this.second.toPython())
+            PyTuple_SetItem(tuple, 2, this.third.toPython())
+            tuple
         }
         else -> throw IllegalArgumentException("Unsupported type: ${this!!::class.simpleName}")
     }

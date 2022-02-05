@@ -3,6 +3,7 @@ import sys
 import platform
 from setuptools import setup, Extension
 import sysconfig
+import shutil
 
 osname = platform.system()
 paths = sysconfig.get_paths()
@@ -10,6 +11,11 @@ debug = True
 
 if sys.version_info < (3, 8):
     os.waitstatus_to_exitcode = lambda x: 0
+
+if osname == "Linux":
+    gradle_bin = "./gradlew"
+else:
+    gradle_bin = "./gradlew.bat"
 
 
 def fill_template():
@@ -22,17 +28,20 @@ def fill_template():
 
 def build_gradle():
     if osname == "Linux":
-        if os.waitstatus_to_exitcode(os.system("./gradlew build")) != 0:
+        if os.waitstatus_to_exitcode(os.system(f"{gradle_bin} clean")) != 0 or os.waitstatus_to_exitcode(os.system(f"{gradle_bin} build")) != 0:
             raise Exception("Build failed")
-    else:
-        if os.waitstatus_to_exitcode(os.system("./gradlew.bat build")) != 0:
-            raise Exception("Build failed")
+
+
+def copy_source():
+    if os.path.exists("kaudio/"):
+        shutil.rmtree("kaudio/")
+    shutil.copytree("src/main/python/", "kaudio/")
 
 
 def extensions():
     folder = "debugStatic" if debug else "releaseStatic"
 
-    native = Extension('kaudio',
+    native = Extension('_kaudio',
                        sources=['src/nativeMain/cpp/entrypoint.cpp'],
                        include_dirs=[f"build/bin/native/{folder}/"],
                        library_dirs=[f"build/bin/native/{folder}/"],
@@ -43,10 +52,12 @@ def extensions():
 
 fill_template()
 build_gradle()
+copy_source()
 
 setup(
     name='kaudio',
     version='1.0',
     description='Python wrapper for kaudio',
-    ext_modules=extensions()
+    ext_modules=extensions(),
+    packages=['kaudio/'],
 )

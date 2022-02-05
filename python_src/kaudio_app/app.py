@@ -6,6 +6,7 @@ from PySide2.QtCore import QTimer, Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication, QHBoxLayout, QMainWindow
 
 from kaudio_app.nodes.effect.advanced.iir_node import IIRNode
+from kaudio_app.nodes.effect.simple.equal_loudness_node import EqualLoudnessNode
 from kaudio_app.nodes.effect.simple.volume_node import VolumeNode
 from kaudio_app.nodes.util.audio_input import AudioInput
 from kaudio_app.nodes.util.audio_output import AudioOutput
@@ -29,6 +30,7 @@ class App:
 
             Visualizer,
 
+            EqualLoudnessNode,
             VolumeNode,
             IIRNode,
         ]
