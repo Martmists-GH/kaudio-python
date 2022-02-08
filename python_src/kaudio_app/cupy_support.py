@@ -13,12 +13,12 @@ except ImportError as e:
     print("Error importing cupy. Falling back to numpy.")
 
     import numpy as _backend
-    from scipy import fftpack
+    from scipy import fft as _fft
 
     class numpy_scipy_proxy:
         def __getattr__(self, item):
-            # if item == "fft":
-            #     return fftpack
+            if item == "fft":
+                return _fft
             return getattr(_backend, item)
 
     backend = numpy_scipy_proxy()
