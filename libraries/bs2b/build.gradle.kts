@@ -11,4 +11,5 @@ library {
 
 val build by tasks.getting {
     dependsOn("assembleRelease")
+    dependsOn("assembleDebug")
 }

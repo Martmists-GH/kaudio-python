@@ -2,9 +2,9 @@ package _kaudio.utils
 
 import _kaudio.nodes.effect.IIRNode
 import platform.posix.sin
-import platform.posix.sqrt
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.sqrt
 
 enum class BiquadType {
     LOWPASS,
@@ -20,7 +20,6 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
     val coeffsA = FloatArray(3) { 0f }
     val coeffsB = FloatArray(3) { 0f }
     val A = dbToAmp(gainDB)
-    val Q = 0.737f
     val w0 = 2 * PI * fc / 48000f
     val cosw0 = cos(w0)
     val sinw0 = sin(w0)
@@ -62,7 +61,7 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
             val a1 = -2.0 * cosw0
             val a2 = 1.0 - alpha
             val b0 = alpha
-            val b1 = 0.0f
+            val b1 = 0.0
             val b2 = -alpha
 
             coeffsA[0] = a0.toFloat()
@@ -78,7 +77,7 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
             val a2 = 1.0 - alpha
             val b0 = 1.0
             val b1 = -2.0 * cosw0
-            val b2 = 1.0 - alpha
+            val b2 = 1.0
 
             coeffsA[0] = a0.toFloat()
             coeffsA[1] = a1.toFloat()
@@ -88,12 +87,12 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
             coeffsB[2] = b2.toFloat()
         }
         BiquadType.PEAK -> {
-            val a0 = 1.0 + alpha
+            val a0 = 1.0 + alpha / A
             val a1 = -2.0 * cosw0
-            val a2 = 1.0 - alpha
-            val b0 = 1.0 + alpha
+            val a2 = 1.0 - alpha / A
+            val b0 = 1.0 + alpha * A
             val b1 = -2.0 * cosw0
-            val b2 = 1.0 - alpha
+            val b2 = 1.0 - alpha * A
 
             coeffsA[0] = a0.toFloat()
             coeffsA[1] = a1.toFloat()
@@ -103,12 +102,12 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
             coeffsB[2] = b2.toFloat()
         }
         BiquadType.LOWSHELF -> {
-            val a0 = 1.0 + alpha * A
-            val a1 = -2.0 * cosw0
-            val a2 = 1.0 - alpha * A
-            val b0 = A * (1.0 + alpha)
-            val b1 = -2.0 * cosw0
-            val b2 = A * (1.0 - alpha)
+            val a0 = (A + 1.0) + (A - 1.0) * cosw0 + 2.0 * alpha * sqrt(A)
+            val a1 = -2.0 * ((A - 1.0) + (A + 1.0) * cosw0)
+            val a2 = (A + 1.0) + (A - 1.0) * cosw0 - 2.0 * alpha * sqrt(A)
+            val b0 = A * ((A + 1.0) - (A - 1.0) * cosw0 + 2.0 * alpha * sqrt(A))
+            val b1 = 2.0 * A * ((A - 1.0) - (A + 1.0) * cosw0)
+            val b2 = A * ((A + 1.0) - (A - 1.0) * cosw0 - 2.0 * alpha * sqrt(A))
 
             coeffsA[0] = a0.toFloat()
             coeffsA[1] = a1.toFloat()
@@ -118,12 +117,12 @@ fun makeBiquad(type: BiquadType, stereo: Boolean, fc: Int, gainDB: Float = 0f, n
             coeffsB[2] = b2.toFloat()
         }
         BiquadType.HIGHSHELF -> {
-            val a0 = 1.0 + alpha * A
-            val a1 = -2.0 * cosw0
-            val a2 = 1.0 - alpha * A
-            val b0 = A * (1.0 - alpha)
-            val b1 = -2.0 * cosw0
-            val b2 = A * (1.0 + alpha)
+            val a0 = (A + 1.0) - (A - 1.0) * cosw0 + 2.0 * alpha * sqrt(A)
+            val a1 = 2.0 * ((A - 1.0) - (A + 1.0) * cosw0)
+            val a2 = (A + 1.0) - (A - 1.0) * cosw0 - 2.0 * alpha * sqrt(A)
+            val b0 = A * ((A + 1.0) + (A - 1.0) * cosw0 + 2.0 * alpha * sqrt(A))
+            val b1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * cosw0)
+            val b2 = A * ((A + 1.0) + (A - 1.0) * cosw0 - 2.0 * alpha * sqrt(A))
 
             coeffsA[0] = a0.toFloat()
             coeffsA[1] = a1.toFloat()

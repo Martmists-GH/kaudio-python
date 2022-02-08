@@ -11,5 +11,8 @@ class EqualLoudnessNode(ResponseNode):
     def __init__(self):
         super().__init__(True)
 
+    def range(self):
+        return -4, 1
+
     def get_new_node(self, stereo: bool) -> kaudio.BaseNode:
         return kaudio.EqualLoudnessNode(stereo)

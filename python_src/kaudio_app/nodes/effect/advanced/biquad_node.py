@@ -17,21 +17,21 @@ class ButterworthNode(ResponseNode):
 
     def get_new_node(self, stereo: bool) -> kaudio.BaseNode:
         node = kaudio.ButterworthNode(stereo)
-        node.make_butterworth(self.type.upper(), self.frequency, self.gain)
+        node.make_butterworth(self.type, self.frequency, self.gain)
         return node
 
     def set_property(self, name, value):
         if name == "gain":
             self.gain = value
-            self.node.make_butterworth(self.type.upper(), self.frequency, self.gain)
+            self.node.make_butterworth(self.type, self.frequency, self.gain)
             self.plot_response()
         elif name == "frequency":
             self.frequency = value
-            self.node.make_butterworth(self.type.upper(), self.frequency, self.gain)
+            self.node.make_butterworth(self.type, self.frequency, self.gain)
             self.plot_response()
         elif name == "type":
             self.type = value
-            self.node.make_butterworth(self.type.upper(), self.frequency, self.gain)
+            self.node.make_butterworth(self.type, self.frequency, self.gain)
             self.plot_response()
         else:
             super().set_property(name, value)

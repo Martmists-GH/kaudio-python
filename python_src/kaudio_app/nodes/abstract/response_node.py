@@ -22,6 +22,9 @@ class ResponseNode(BaseNode):
         self.response_plot_inner = self.response_plot.plot(np.zeros((24000,)), pen=self.colors[1])
         self.setup_response_widget()
 
+    def range(self):
+        return 0, 2
+
     def setup_response_widget(self):
         self.response_widget = GraphicsLayoutWidget()
         self.response_plot = self.response_widget.addPlot()
@@ -29,6 +32,8 @@ class ResponseNode(BaseNode):
         self.response_plot.setMouseEnabled(False, False)
         self.response_plot.showAxis('bottom', False)
         self.response_plot.showAxis('left', False)
+        self.response_plot.setYRange(*self.range())
+        self.response_plot.setXRange(1.6, 4.3)
         fig = self.response_plot.plot(np.zeros((24000,)), pen=self.colors[1])
         fig.setLogMode(True, self.plot_log)
         self.response_plot_inner = fig

@@ -40,6 +40,8 @@ fun createPyKtModule(): PyObjectT {
     if (obj.addType(PyType_EqualizerNode) < 0) return null
     if (obj.addType(PyType_EqualLoudnessNode) < 0) return null
     if (obj.addType(PyType_Bs2bNode) < 0) return null
+    if (obj.addType(PyType_ReverbNode) < 0) return null
+    if (obj.addType(PyType_TubeSimulatorNode) < 0) return null
 
     return obj
 }
