@@ -73,8 +73,8 @@ class AudioInput(BaseNode):
                 sleep(0.0001)
             arr, overflowed = self.stream.read(1024)
             if overflowed:
-                print(self.stream.read_available)
                 print("Overflowed")
+                print(self.stream.read_available)
             if self.stereo:
                 self.node.buffer_left = list(arr[:1024, 0])
                 self.node.buffer_right = list(arr[:1024, 1])

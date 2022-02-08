@@ -7,7 +7,7 @@ import shutil
 
 osname = platform.system()
 paths = sysconfig.get_paths()
-debug = True
+debug = False
 
 if sys.version_info < (3, 8):
     os.waitstatus_to_exitcode = lambda x: 0

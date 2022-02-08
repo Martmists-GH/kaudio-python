@@ -3,45 +3,63 @@ package _kaudio.nodes.effect
 import _kaudio.FRAME_SIZE
 import _kaudio.nodes.abstract.PyType_StereoNode
 import _kaudio.nodes.abstract.StereoNode
-import _kaudio.reverb.RevModel
-import _kaudio.utils.copyStereo
 import kotlinx.cinterop.*
 import python.KtPyObject
 import pywrapper.PyObjectT
 import pywrapper.builders.makePyType
+import freeverb.*
+import pywrapper.NeedsFree
 
-class ReverbNode : StereoNode() {
-    private val model = RevModel()
-    private val roomSize by attribute("room_size", 0f) {
-        model.setRoomSize(it)
+
+class ReverbNode : StereoNode(), NeedsFree {
+    private val model = create_revmodel();
+
+    private val roomSize by attribute("room_size", getroomsize(model)) {
+        setroomsize(model, it)
     }
-    private val damp by attribute("damp", 0f) {
-        model.setDamp(it)
+    private val damp by attribute("damp", getdamp(model)) {
+        setdamp(model, it)
     }
-    private val wet by attribute("wet", 0f) {
-        model.setWet(it)
+    private val wet by attribute("wet", getwet(model)) {
+        setwet(model, it)
     }
-    private val dry by attribute("dry", 0.5f) {
-        model.setDry(it)
+    private val dry by attribute("dry", getdry(model)) {
+        setdry(model, it)
     }
-    private val width by attribute("width", 0f) {
-        model.setWidth(it)
+    private val width by attribute("width", getwidth(model)) {
+        setwidth(model, it)
     }
 
-    init {
-        model.setRoomSize(roomSize)
-        model.setWidth(width)
-        model.setDamp(damp)
-        model.setWet(wet)
-        model.setDry(dry)
+    private val inLeft = nativeHeap.allocArray<FloatVar>(FRAME_SIZE)
+    private val inRight = nativeHeap.allocArray<FloatVar>(FRAME_SIZE)
+    private val outLeft = nativeHeap.allocArray<FloatVar>(FRAME_SIZE)
+    private val outRight = nativeHeap.allocArray<FloatVar>(FRAME_SIZE)
+
+    override fun free() {
+        delete_revmodel(model)
+        nativeHeap.free(inLeft)
+        nativeHeap.free(inRight)
+        nativeHeap.free(outLeft)
+        nativeHeap.free(outRight)
     }
 
     override fun process() {
         val inL = inputLeft
         val inR = inputRight
+        val outL = outputLeft
+        val outR = outputRight
 
-        model.processReplace(inL, inR, FRAME_SIZE)
-        copyStereo(inL, inR, outputLeft, outputRight)
+        for (i in 0 until FRAME_SIZE) {
+            inLeft[i] = inL[i]
+            inRight[i] = inR[i]
+        }
+
+        processreplace(model, inLeft, inRight, outLeft, outRight, FRAME_SIZE.convert(), 1)
+
+        for (i in 0 until FRAME_SIZE) {
+            outL[i] = outLeft[i]
+            outR[i] = outRight[i]
+        }
     }
 }
 

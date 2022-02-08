@@ -1,0 +1,4 @@
+headers = api.h
+staticLibraries = libfreeverb.a
+compilerOpts = -I./libraries/freeverb/src/api
+libraryPaths = ./libraries/freeverb/build/lib/main/release

@@ -21,7 +21,7 @@ from kaudio_app.nodes.util.visualizer import Visualizer
 
 
 class App:
-    INSTANCE = None
+    INSTANCE: 'App' = None
 
     def __init__(self):
         App.INSTANCE = self
@@ -59,7 +59,9 @@ class App:
             self.node_menu.add_command("Popout Menu", func=self.popout_widget, node_class=_type)
 
         self.graph.register_nodes(node_types)
-        self.graph.nodes_deleted.connect(lambda deleted: self.toggle_node_props(removed=deleted))
+        self.graph.node_selected.connect(lambda node: self.toggle_node_props([node]))
+        self.graph.node_created.connect(lambda node: self.toggle_node_props([node]))
+        self.graph.nodes_deleted.connect(lambda deleted: self.toggle_node_props(removed=[node for node in self.selected_nodes if node.id in deleted]))
         self.graph.node_selection_changed.connect(self.toggle_node_props)
 
         self.timer = QTimer()

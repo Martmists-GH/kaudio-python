@@ -23,6 +23,7 @@ kotlin {
         val main by compilations.getting
         val python by main.cinterops.creating { }
         val bs2b by main.cinterops.creating { }
+        val freeverb by main.cinterops.creating { }
 
         binaries {
             staticLib {
@@ -36,8 +37,13 @@ val cinteropBs2bNative by tasks.getting {
     dependsOn("libraries:bs2b:build")
 }
 
+val cinteropFreeverbNative by tasks.getting {
+    dependsOn("libraries:freeverb:build")
+}
+
 val compileKotlinNative by tasks.getting {
     dependsOn("cinteropBs2bNative")
+    dependsOn("cinteropFreeverbNative")
     dependsOn("cinteropPythonNative")
 }
 

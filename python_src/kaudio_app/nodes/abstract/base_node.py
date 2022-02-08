@@ -3,7 +3,7 @@ from typing import Tuple
 import NodeGraphQt
 import kaudio
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCheckBox
+from PySide2.QtWidgets import QWidget, QScrollArea, QTabWidget, QVBoxLayout, QCheckBox, QPushButton
 
 from kaudio_app.ui.popout import PopoutWidget
 from kaudio_app.ui.props import IntSlider, ComboBox, FloatSlider
@@ -43,12 +43,19 @@ class BaseNode(NodeGraphQt.BaseNode):
         self.popped_out = False
         self.popup = None
 
+    def reload_widget(self):
+        if self.popped_out:
+            self.popup.close()
+            self.popout()
+        else:
+            from kaudio_app.app import App
+            App.INSTANCE.toggle_node_props(removed=[self])
+            App.INSTANCE.toggle_node_props([self])
+
     def on_input_connected(self, in_port, out_port):
-        # print(f"Connecting {out_port.node().node}:{out_port.name()} to {in_port.node().node}:{in_port.name()}")
         out_port.node().node.connect(out_port.name(), in_port.node().node, in_port.name())
 
     def on_input_disconnected(self, in_port, out_port):
-        # print(f"Disconnecting {out_port.node().node}:{out_port.name()} from {in_port.node().node}:{in_port.name()}")
         out_port.node().node.disconnect(out_port.name())
 
     def get_new_node(self, stereo: bool) -> kaudio.BaseNode:
@@ -85,7 +92,6 @@ class BaseNode(NodeGraphQt.BaseNode):
 
     def process(self):
         self.node.process()
-        # profile_growth(f"{self.__class__.__name__}.process")
 
     def config_checkbox(self, name: str, label: str, value: bool, widget: QWidget):
         checkbox = QCheckBox(label)
@@ -107,6 +113,12 @@ class BaseNode(NodeGraphQt.BaseNode):
         combo = ComboBox(label, value, options)
         combo.on_set.connect(lambda new: self.set_property(name, new))
         widget.layout().addWidget(combo)
+
+    def config_button(self, label: str, callback, widget: QWidget):
+        button = QPushButton()
+        button.setText(label)
+        button.pressed.connect(callback)
+        widget.layout().addWidget(button)
 
     def configure_config_widget(self, widget: QWidget):
         if isinstance(self.node, (kaudio.DualNode, kaudio.SplitterNode, kaudio.CombinerNode)):

@@ -46,8 +46,8 @@ class ReverbNode(BaseNode):
 
     def configure_config_widget(self, widget: QWidget):
         super().configure_config_widget(widget)
-        self.config_float("Room size", "room_size", self.room_size, (0, 1), widget)
-        self.config_float("Damping", "damping", self.damping, (0, 1), widget)
-        self.config_float("Wet signal", "wet", self.wet, (0, 1), widget)
-        self.config_float("Dry signal", "dry", self.dry, (0, 1), widget)
-        self.config_float("Width", "width", self.width, (0, 1), widget)
+        self.config_float("room_size", "Room size", self.room_size, (0, 1), widget)
+        self.config_float("damping", "Damping", self.damping, (0, 1), widget)
+        self.config_float("wet", "Wet signal", self.wet, (0, 1), widget)
+        self.config_float("dry", "Dry signal", self.dry, (0, 1), widget)
+        self.config_float("width", "Width", self.width, (0, 1), widget)

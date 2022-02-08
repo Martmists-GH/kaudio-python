@@ -12,7 +12,7 @@ import pywrapper.builders.makePyType
 
 class Bs2bNode : StereoNode(), NeedsFree {
     private val config = bs2b_open()
-    private val buffer = nativeHeap.allocArray<FloatVar>(2 as Int) { this.value = 0f }
+    private val buffer = nativeHeap.allocArray<FloatVar>(2L) { this.value = 0f }
 
     init {
         bs2b_set_srate(config, 48000.convert())

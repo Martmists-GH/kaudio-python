@@ -30,7 +30,13 @@ class EqualizerNode(ResponseNode):
         else:
             super().set_property(name, value)
 
+    def reset_defaults(self):
+        self.gain = [0.0] * 10
+        self.node.gain = [0.0] * 10
+        self.reload_widget()
+
     def configure_config_widget(self, widget: QWidget):
         super().configure_config_widget(widget)
+        self.config_button("Reset", self.reset_defaults, widget)
         for i in range(10):
             self.config_float(f"gain_{i}", f"Gain ({32 * pow(2, i) - 1}Hz)", self.gain[i], (-12, 12), widget)
