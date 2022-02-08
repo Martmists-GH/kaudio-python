@@ -41,7 +41,7 @@ class TubeSimulatorNode(stereo: Boolean) : DualNode(stereo) {
 
 private val initTubeSimulatorNode = staticCFunction { selfObj: PyObjectT, args: PyObjectT, kwargs: PyObjectT ->
     memScoped {
-        val self = selfObj?.reinterpret<KtPyObject>() ?: return@memScoped -1
+        val self: CPointer<KtPyObject> = selfObj?.reinterpret() ?: return@memScoped -1
 
         val parsed = args.parseKw("__init__", kwargs, "stereo")
         if (parsed.isEmpty()) {

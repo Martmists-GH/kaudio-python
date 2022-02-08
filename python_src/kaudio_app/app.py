@@ -7,8 +7,11 @@ from PySide2.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QApplication, QH
 
 from kaudio_app.nodes.effect.advanced.biquad_node import ButterworthNode
 from kaudio_app.nodes.effect.advanced.iir_node import IIRNode
+from kaudio_app.nodes.effect.advanced.reverb_node import ReverbNode
 from kaudio_app.nodes.effect.simple.bs2b_node import Bs2bNode
 from kaudio_app.nodes.effect.simple.equal_loudness_node import EqualLoudnessNode
+from kaudio_app.nodes.effect.simple.equalizer_node import EqualizerNode
+from kaudio_app.nodes.effect.simple.tube_simulator_node import TubeSimulatorNode
 from kaudio_app.nodes.effect.simple.volume_node import VolumeNode
 from kaudio_app.nodes.util.audio_input import AudioInput
 from kaudio_app.nodes.util.audio_output import AudioOutput
@@ -34,9 +37,12 @@ class App:
             EqualLoudnessNode,
             VolumeNode,
             Bs2bNode,
+            TubeSimulatorNode,
+            EqualizerNode,
 
             IIRNode,
             ButterworthNode,
+            ReverbNode,
         ]
 
         self.app = QApplication([])

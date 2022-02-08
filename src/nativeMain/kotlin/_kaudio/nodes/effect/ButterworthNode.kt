@@ -11,7 +11,7 @@ import pywrapper.ext.kt
 
 class ButterworthNode(stereo: Boolean) : IIRNode(2, stereo) {
     fun make(type: BiquadType, fc: Int, gain: Float) {
-        makeBiquad(type, stereo, fc, gain, this)
+        makeBiquad(type, stereo, fc, gain, node=this)
     }
 }
 

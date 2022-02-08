@@ -20,10 +20,10 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
         nodes.forEachIndexed { index, node ->
             when (index) {
                 0 -> {
-                    makeBiquad(BiquadType.LOWSHELF, stereo, 31, it[index], node)
+                    makeBiquad(BiquadType.LOWSHELF, stereo, 31, it[index], 2f, node)
                 }
                 nodes.lastIndex -> {
-                    makeBiquad(BiquadType.HIGHSHELF, stereo, 16383, it[index], node)
+                    makeBiquad(BiquadType.HIGHSHELF, stereo, 16383, it[index], 2f, node)
                 }
                 else -> {
                     makeBiquad(
@@ -31,6 +31,7 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
                         stereo,
                         (32 * powf(2f, index.toFloat()) - 1).roundToInt(),
                         it[index],
+                        2f,
                         node
                     )
                 }
@@ -40,16 +41,16 @@ class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
 
     private val outNode = DummyNode(stereo)
     private val nodes = arrayOf(
-        makeBiquad(BiquadType.LOWSHELF, stereo, 31, gain[0]),
-        makeBiquad(BiquadType.PEAK, stereo, 63, gain[1]),
-        makeBiquad(BiquadType.PEAK, stereo, 127, gain[2]),
-        makeBiquad(BiquadType.PEAK, stereo, 255, gain[3]),
-        makeBiquad(BiquadType.PEAK, stereo, 511, gain[4]),
-        makeBiquad(BiquadType.PEAK, stereo, 1023, gain[5]),
-        makeBiquad(BiquadType.PEAK, stereo, 2047, gain[6]),
-        makeBiquad(BiquadType.PEAK, stereo, 4095, gain[7]),
-        makeBiquad(BiquadType.PEAK, stereo, 8191, gain[8]),
-        makeBiquad(BiquadType.HIGHSHELF, stereo, 16383, gain[9]),
+        makeBiquad(BiquadType.LOWSHELF, stereo, 31, gain[0], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 63, gain[1], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 127, gain[2], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 255, gain[3], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 511, gain[4], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 1023, gain[5], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 2047, gain[6], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 4095, gain[7], 2f),
+        makeBiquad(BiquadType.PEAK, stereo, 8191, gain[8], 2f),
+        makeBiquad(BiquadType.HIGHSHELF, stereo, 16383, gain[9], 2f),
     )
 
     init {

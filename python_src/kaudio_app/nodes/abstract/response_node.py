@@ -33,7 +33,7 @@ class ResponseNode(BaseNode):
         self.response_plot.showAxis('bottom', False)
         self.response_plot.showAxis('left', False)
         self.response_plot.setYRange(*self.range())
-        self.response_plot.setXRange(1.6, 4.3)
+        self.response_plot.setXRange(1.05, 4.3)
         fig = self.response_plot.plot(np.zeros((24000,)), pen=self.colors[1])
         fig.setLogMode(True, self.plot_log)
         self.response_plot_inner = fig
@@ -43,16 +43,26 @@ class ResponseNode(BaseNode):
         return np.blackman(1024) * audio
 
     def plot_response(self):
-        node = self.get_new_node(False)
-        input = kaudio.InputNode(False)
-        output = kaudio.OutputNode(False)
-        input.buffer = [1] + [0] * 1023
-        input.connect("output", node, "input")
-        node.connect("output", output, "input")
-        input.process()
-        node.process()
-        output.process()
-        fft = np.abs(np.fft.fft(output.buffer + [0] * (48000 - 1024)))
+        node = self.get_new_node(self.stereo)
+        input = kaudio.InputNode(self.stereo)
+        output = kaudio.OutputNode(self.stereo)
+        if self.stereo:
+            input.buffer_left = [1] + [0] * 1023
+            input.connect_stereo(node)
+            node.connect_stereo(output)
+            input.process()
+            node.process()
+            output.process()
+            buf = output.buffer_left
+        else:
+            input.buffer = [1] + [0] * 1023
+            input.connect("output", node, "input")
+            node.connect("output", output, "input")
+            input.process()
+            node.process()
+            output.process()
+            buf = output.buffer
+        fft = np.abs(np.fft.fft(buf + [0] * (48000 - 1024)))
         fft = fft[:24000]
         self.response_plot_inner.setData(fft)
 
