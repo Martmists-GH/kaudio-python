@@ -1,15 +1,15 @@
 # KAudio Python Wrapper
 
-A reimplementation of my kaudio library for Python.
+A reimplementation of my kaudio library for Python 3.10+
 
 # Application
 
 An application is bundled by default:
 
 ```
-$ pip install .
-$ cd python_src
-$ python3 -m kaudio_app
+$ pip install Qt.py          # required due to an issue in NodeGraphQt
+$ pip install --user .[app]  # on zsh: pip install --user .\[app\]
+$ python3 -m kaudio.app
 ```
 
 # Usage

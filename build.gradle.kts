@@ -1,13 +1,11 @@
+import com.martmists.kpy.plugin.PythonVersion
+
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    kotlin("multiplatform") version "1.7.0"
+    id("com.martmists.kpy.kpy-plugin") version "0.3.5-1.7.0"
 }
 
-group = "com.martmists"
-version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-}
+version = "0.0.1"
 
 kotlin {
     val hostOs = System.getProperty("os.name")
@@ -19,11 +17,24 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
+    sourceSets {
+        val main by creating {
+
+        }
+
+        val nativeMain by getting {
+
+        }
+    }
+
     nativeTarget.apply {
-        val main by compilations.getting
-        val python by main.cinterops.creating { }
-        val bs2b by main.cinterops.creating { }
-        val freeverb by main.cinterops.creating { }
+        val main by compilations.getting {
+            cinterops {
+                val bs2b by creating { }
+                val freeverb by creating { }
+                val utilities by creating { }
+            }
+        }
 
         binaries {
             staticLib {
@@ -33,20 +44,11 @@ kotlin {
     }
 }
 
-val cinteropBs2bNative by tasks.getting {
-    dependsOn("libraries:bs2b:build")
+allprojects {
+    buildDir = file("${rootProject.rootDir.absolutePath}/build/${project.name}")
 }
 
-val cinteropFreeverbNative by tasks.getting {
-    dependsOn("libraries:freeverb:build")
-}
-
-val compileKotlinNative by tasks.getting {
-    dependsOn("cinteropBs2bNative")
-    dependsOn("cinteropFreeverbNative")
-    dependsOn("cinteropPythonNative")
-}
-
-val install by tasks.register<Exec>("install") {
-    commandLine = listOf("pip3", "install", "-U", ".")
+kpy {
+    pyVersion = PythonVersion.Py310
+    generateStubs = true
 }

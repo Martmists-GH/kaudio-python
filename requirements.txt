@@ -1,0 +1,15 @@
+# GUI
+Qt.py==1.3.7
+PySide2==5.15.2.1
+NodeGraphQt @ git+https://github.com/jchanvfx/NodeGraphQt.git@227594c907bd9abad88bc1d859452fad18352f5d#egg=NodeGraphQt
+
+# Audio
+sounddevice==0.4.4
+
+# Plotting
+pyqtgraph==0.12.4
+
+# Math
+numpy==1.22.4
+scipy==1.8.1
+# cupy  # Only for CUDA GPUs

@@ -1,0 +1,4 @@
+headers = utilities.h
+staticLibraries = libutilities.a
+compilerOpts = -I./libraries/utilities/src/main/headers
+libraryPaths = ./build/utilities/lib/main/release

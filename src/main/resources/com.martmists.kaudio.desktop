@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.5
+Type=Application
+Name=KAudio
+GenericName=Audio FX
+Comment=Graph-based audio effects
+Exec=python -m kaudio.app
+Terminal=false

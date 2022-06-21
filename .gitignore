@@ -218,6 +218,5 @@ dmypy.json
 cython_debug/
 
 ### Custom
-python.def
 .python-version
-/kaudio/
+/src/nativeInterop/cinterop/numpy.def
