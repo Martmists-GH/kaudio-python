@@ -14,6 +14,7 @@ else:
     gradle_bin = ".\\gradlew.bat"
 
 # Build the project
+# I don't know why, but for some reason this may fail a few times before succeeding.
 for i in range(10):
     proc = Popen([gradle_bin, "build"])
     if proc.wait() == 0:
@@ -73,11 +74,11 @@ attrs = {}
 
 if has_stubs:
     stub_root = f"{build_dir}/generated/ksp/{target}/{target}Main/resources/"
-    attrs["packages"] = find_packages(where=stub_root) + ["kaudio.app"] + ["kaudio.app." + it for it in find_packages(where=f"src/main/kaudio/app")]
-    attrs["package_dir"] = {"": stub_root, "kaudio.app": f"src/main/kaudio/app"}
+    attrs["packages"] = find_packages(where=stub_root) + ["kaudio.app"] + ["kaudio.app." + it for it in find_packages(where="src/main/kaudio/app")]
+    attrs["package_dir"] = {"": stub_root, "kaudio.app": "src/main/kaudio/app"}
 else:
-    attrs["packages"] =  ["kaudio.app"] + ["kaudio.app." + it for it in find_packages(where=f"src/main/kaudio/app")]
-    attrs["package_dir"] = {"kaudio.app": f"src/main/kaudio/app"}
+    attrs["packages"] =  ["kaudio.app"] + ["kaudio.app." + it for it in find_packages(where="src/main/kaudio/app")]
+    attrs["package_dir"] = {"kaudio.app": "src/main/kaudio/app"}
 
 print(attrs)
 
@@ -90,7 +91,7 @@ setup(
     python_requires=">=3.10",
     ext_modules=extensions(),
     data_files=[
-        ("share/applications", [f"src/main/resources/com.martmists.kaudio.desktop"]),
+        ("share/applications", ["src/main/resources/com.martmists.kaudio.desktop"]),
     ],
     entry_points={
         "console_scripts": ["kaudio=kaudio.app.__main__:main"],

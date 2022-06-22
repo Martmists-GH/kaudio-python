@@ -1,4 +1,6 @@
-import sounddevice as sd
+from typing import Union
+
+from sounddevice import query_hostapis, query_devices, InputStream, OutputStream
 
 LATENCY = 'low'
 
@@ -23,29 +25,29 @@ def get_hostapi():
         'JACK Audio Connection Kit',
         'ALSA'
     ]
-    apis = sd.query_hostapis()
+    apis = query_hostapis()
     for name in order:
         for api in filter(lambda x: x['name'] == name, apis):
             return apis.index(api)
 
 
 def device_map():
-    return {it['name']: (it, j) for j, it in enumerate(sd.query_devices())
+    return {it['name']: (it, j) for j, it in enumerate(query_devices())
             if it["hostapi"] == get_hostapi()}
 
 
-def open_stream(index: int, stereo: bool, is_input: bool):
+def open_stream(index: int, stereo: bool, is_input: bool) -> Union[InputStream, OutputStream]:
     if is_input:
-        return sd.InputStream(device=index,
-                              channels=1 + stereo,
-                              latency=LATENCY,
-                              samplerate=48000,
-                              blocksize=1024,
-                              dtype='float32')
+        return InputStream(device=index,
+                           channels=1 + stereo,
+                           latency=LATENCY,
+                           samplerate=48000,
+                           blocksize=1024,
+                           dtype='float32')
     else:
-        return sd.OutputStream(device=index,
-                               channels=1 + stereo,
-                               latency=LATENCY,
-                               samplerate=48000,
-                               blocksize=1024,
-                               dtype='float32')
+        return OutputStream(device=index,
+                            channels=1 + stereo,
+                            latency=LATENCY,
+                            samplerate=48000,
+                            blocksize=1024,
+                            dtype='float32')
