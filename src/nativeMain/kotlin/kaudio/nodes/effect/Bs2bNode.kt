@@ -6,6 +6,7 @@ import kaudio.SAMPLERATE
 import kaudio.nodes.base.StereoNode
 import kotlinx.cinterop.*
 import kpy.annotations.PyExport
+import kpy.annotations.PyHint
 import kpy.utilities.Freeable
 
 @PyExport
@@ -18,9 +19,12 @@ class Bs2bNode : StereoNode(), Freeable {
         bs2b_set_level(config, BS2B_DEFAULT_CLEVEL)
     }
 
+    @delegate:PyHint
     private val frequency by python(bs2b_get_level_fcut(config)) {
         bs2b_set_level_fcut(config, it)
     }
+
+    @delegate:PyHint
     private val feed by python(bs2b_get_level_feed(config)) {
         bs2b_set_level_feed(config, it)
     }

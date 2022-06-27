@@ -12,6 +12,7 @@ import kpy.utilities.Freeable
 class FIRNode(order: Int, stereo: Boolean) : DualNode(stereo), Freeable {
     private val filter = FIRFilter(order)
     private val filter2 = FIRFilter(order)
+
     @delegate:PyHint
     private val coeffs by python(filter.coeffs) {
         filter.coeffs = it

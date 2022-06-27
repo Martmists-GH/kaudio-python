@@ -4,7 +4,7 @@ import kpy.annotations.PyExport
 import kpy.annotations.PyHint
 
 @PyExport
-abstract class DualNode(private val stereo: Boolean) : BaseNode() {
+abstract class DualNode(protected val stereo: Boolean) : BaseNode() {
     @delegate:PyHint
     internal val inputLeft by input()
     @delegate:PyHint

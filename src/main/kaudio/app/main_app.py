@@ -55,36 +55,27 @@ class MainApp:
 
     @staticmethod
     def nodes_ordered(graph: NodeGraph) -> List[BaseNode]:
+        sorted_nodes = []
         visited = set()
+        all_nodes = graph.all_nodes()
 
-        def visit(node):
-            visited.add(node)
-            parents = node.connected_input_nodes().values()
-            children = node.connected_output_nodes().values()
-            return [
-                *(
-                    j
-                    for el in parents
-                    for n in el
-                    if n not in visited
-                    for j in visit(n)
-                  ),
-                node,
-                *(
-                    j
-                    for el in children
-                    for n in el
-                    if n not in visited
-                    for j in visit(n)
-                )
-            ]
+        def visit(n: BaseNode):
+            if n in visited:
+                return
 
-        sorted_nodes = [
-            n
-            for node in graph.all_nodes()
-            if node not in visited
-            for n in visit(node)
-        ]
+            visited.add(n)
+
+            for m in n.connected_output_nodes().values():
+                for k in m:
+                    visit(k)
+
+            all_nodes.remove(n)
+            sorted_nodes.insert(0, n)
+
+        while all_nodes:
+            node = all_nodes[0]
+            visit(node)
+
         return sorted_nodes
 
     def run(self):

@@ -36,18 +36,14 @@ class SidebarWidget(QWidget):
 
     def untrack_nodes(self, nodes: List[BaseNode]):
         for node in nodes:
-            if node in self.tracked_nodes:
-                self.tracked_nodes.remove(node)
+            matching = (n for n in self.tracked_nodes if n.id == node)
+            for n in matching:
+                self.tracked_nodes.remove(n)
         self.update_widget()
 
     def track_node(self, node: BaseNode):
         self.tracked_nodes.add(node)
         self.update_widget()
-
-    def untrack_node(self, node: BaseNode):
-        if node in self.tracked_nodes:
-            self.tracked_nodes.remove(node)
-            self.update_widget()
 
     def update_widget(self):
         num_selected = len(self.tracked_nodes)

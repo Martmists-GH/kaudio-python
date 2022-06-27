@@ -1,7 +1,7 @@
 package kaudio.utils
 
+import kaudio.SAMPLERATE
 import kaudio.ext.amplitude
-import kaudio.components.IIRFilter
 import platform.posix.sin
 import kotlin.math.PI
 import kotlin.math.cos
@@ -17,11 +17,11 @@ enum class BiquadType {
     HIGHSHELF
 }
 
-fun makeBiquad(type: BiquadType, fc: Int, gainDB: Float = 0f, qFactor: Float = sqrt(2f) / 2): Pair<FloatArray, FloatArray> {
-    val coeffsA = FloatArray(3) { 0f }
-    val coeffsB = FloatArray(3) { 0f }
+fun makeBiquad(type: BiquadType, fc: Int, gainDB: Float = 0f, qFactor: Float = 1/sqrt(2f), storage: Pair<FloatArray, FloatArray>? = null): Pair<FloatArray, FloatArray> {
+    val coeffsA = storage?.first ?: FloatArray(3) { 0f }
+    val coeffsB = storage?.second ?: FloatArray(3) { 0f }
     val amp = gainDB.amplitude
-    val w0 = 2 * PI * fc / 48000f
+    val w0 = 2 * PI * fc / SAMPLERATE.toFloat()
     val cosw0 = cos(w0)
     val sinw0 = sin(w0)
     val alpha = sinw0 / qFactor

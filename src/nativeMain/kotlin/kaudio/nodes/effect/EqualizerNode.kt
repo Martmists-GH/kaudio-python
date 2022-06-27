@@ -3,33 +3,42 @@ package kaudio.nodes.effect
 import kaudio.nodes.base.BaseNode
 import kaudio.nodes.base.DualNode
 import kaudio.utils.BiquadType
+import kaudio.utils.EqualizerOptimizer
 import kaudio.utils.makeBiquad
 import kpy.annotations.PyExport
 import kpy.annotations.PyHint
 
 @PyExport
 class EqualizerNode(stereo: Boolean) : DualNode(stereo) {
-    private val freqMap = listOf(31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000)
+    private val freqMap = intArrayOf(32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000)
 
     @delegate:PyHint
-    private val gain by python(FloatArray(10) { 0f }) {
+    private val gain by python(FloatArray(freqMap.size) { 0f }) {
+        val q = 0.66667f
+
         if (it.size != 10) {
             throw IllegalArgumentException("Gain array must be of size 10")
         }
 
-        it.forEachIndexed { index, g ->
-            val coeffs = makeBiquad(BiquadType.PEAK, freqMap[index], g, 1.41f)
-            nodes[index].coeffsA = coeffs.first
-            nodes[index].coeffsB = coeffs.second
+        val opt = EqualizerOptimizer(it, q)
+        var k = 0
+        while (opt.improve() > 0.001) {
+            if (k++ > 100) break;
+        }
+
+        val optGains = opt.gains()
+
+        for (i in it.indices) {
+            makeBiquad(BiquadType.PEAK, freqMap[i], optGains[i], q, nodes[i].coeffsA to nodes[i].coeffsB)
         }
     }
 
-    private val nodes = List(10) {
+    private val nodes = List(freqMap.size) {
         IIRNode(2, stereo)
     }
 
     init {
-        for (i in 0 until 9) {
+        for (i in 0 until nodes.lastIndex) {
             val current = nodes[i]
             val next = nodes[i + 1]
             if (stereo) {

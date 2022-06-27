@@ -2,7 +2,7 @@ import com.martmists.kpy.plugin.PythonVersion
 
 plugins {
     kotlin("multiplatform") version "1.7.0"
-    id("com.martmists.kpy.kpy-plugin") version "0.3.5-1.7.0"
+    id("com.martmists.kpy.kpy-plugin") version "0.3.7-1.7.0"
 }
 
 version = "0.0.1"

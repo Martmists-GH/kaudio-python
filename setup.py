@@ -39,7 +39,6 @@ build_dir: str
 root_dir: str
 target: str
 
-print(dir_name)
 build_dir = build_dir[len(dir_name)+1:]
 root_dir = root_dir[len(dir_name)+1:]
 
