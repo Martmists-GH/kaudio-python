@@ -7,7 +7,7 @@ A reimplementation of my kaudio library for Python 3.10+
 An application is bundled by default:
 
 ```
-$ pip install Qt.py          # required due to an issue in NodeGraphQt
+$ pip install Qt.py PySide2  # required due to an issue in NodeGraphQt
 $ pip install --user .[app]  # on zsh: pip install --user .\[app\]
 $ python3 -m kaudio.app
 ```
