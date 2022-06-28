@@ -90,11 +90,16 @@ class OutputNode(StereoNode):
         left = np.asarray(self.k_node.bufLeft)
         right = np.asarray(self.k_node.bufRight)
         self.plot_data = list((left + right) / 2)
-        self.plot_update_listener()
-        self.plot_signal_listener()
+
+        try:
+            self.plot_update_listener()
+            self.plot_signal_listener()
+        except RuntimeError as e:
+            self.plot_update_listener = lambda: None
+            self.plot_signal_listener = lambda: None
 
     def create_signal_tab(self, widget: QWidget):
-        size = min(int(48000 * 0.05), len(self.plot_data))
+        size = min(int(48000 * 0.4), len(self.plot_data))
         num_bars = size
 
         response_widget = GraphicsLayoutWidget()

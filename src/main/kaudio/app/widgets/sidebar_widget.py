@@ -36,7 +36,7 @@ class SidebarWidget(QWidget):
 
     def untrack_nodes(self, nodes: List[BaseNode]):
         for node in nodes:
-            matching = (n for n in self.tracked_nodes if n.id == node)
+            matching = [n for n in self.tracked_nodes if n.id == node]
             for n in matching:
                 self.tracked_nodes.remove(n)
         self.update_widget()
@@ -57,4 +57,6 @@ class SidebarWidget(QWidget):
         elif num_selected != 1 and widget is not None:
             self.menu.layout().removeWidget(widget)
             self.menu.setVisible(False)
+            widget.setVisible(False)
+            widget.deleteLater()
             self.current_config_widget = None

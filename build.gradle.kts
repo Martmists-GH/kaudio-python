@@ -34,6 +34,14 @@ kotlin {
                 val freeverb by creating { }
                 val utilities by creating { }
             }
+
+            afterEvaluate {
+                cinterops.all {
+                    tasks.named("cinterop${name.capitalize()}Native") {
+                        dependsOn(":libraries:${this@all.name}:build")
+                    }
+                }
+            }
         }
 
         binaries {
