@@ -23,7 +23,7 @@ class CavaFFT:
         self.framerate = 75
         self.frame_skip = 1
         self.noise_reduction = noise_reduction
-        self.height = 10  # never actually set in cava?
+        self.height = 32  # never actually set in cava?
         self.average_max = log10(self.height) * 0.05
         self.fft_bass_buffer_size = treble_buffer_size * 8
         self.fft_mid_buffer_size = treble_buffer_size * 4
@@ -54,11 +54,13 @@ class CavaFFT:
         self.out_mid = np.zeros((self.fft_mid_buffer_size, channels))
         self.out_treble = np.zeros((self.fft_treble_buffer_size, channels))
 
+        # process: calculate cutoff frequencies and eq
         lower_cutoff = low_cutoff
         upper_cutoff = high_cutoff
         bass_cutoff = 100
         treble_cutoff = 500
 
+        # calculate frequency constant (used to distribute bars across the frequency band)
         frequency_constant = log10(lower_cutoff / upper_cutoff) / (1 / (num_bars + 1) - 1)
         relative_cutoff = np.zeros((self.fft_treble_buffer_size,))
 
@@ -78,11 +80,19 @@ class CavaFFT:
                     self.cutoff_frequency[n] = self.cutoff_frequency[n-1] + (self.cutoff_frequency[n-1] - self.cutoff_frequency[n-2])
 
             relative_cutoff[n] = self.cutoff_frequency[n] / (self.rate / 2)
+            # remember nyquist!, per my calculations this should be rate/2
+            # and nyquist freq in M/2 but testing shows it is not...
+            # or maybe the nq freq is in M/4
+
             self.eq[n] = self.cutoff_frequency[n] ** 1
+
+            # the numbers that come out of the FFT are verry high
+            # the EQ is used to "normalize" them by dividing with this verry huge number
             self.eq[n] /= 2 ** 18
             self.eq[n] /= log2(self.fft_bass_buffer_size)
 
             if self.cutoff_frequency[n] > bass_cutoff:
+                # BASS
                 bar_buffer[n] = 1
                 self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_bass_buffer_size / 2))
                 self.bass_cutoff_bar += 1
@@ -94,6 +104,7 @@ class CavaFFT:
                     self.fft_lower_cutoff[n] = self.fft_bass_buffer_size / 2
 
             elif self.cutoff_frequency[n] < treble_cutoff:
+                # MID
                 bar_buffer[n] = 2
                 self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_mid_buffer_size / 2))
                 self.treble_cutoff_bar += 1
@@ -108,6 +119,7 @@ class CavaFFT:
                     self.fft_lower_cutoff[n] = self.fft_treble_buffer_size / 2
 
             else:
+                # TREBLE
                 bar_buffer[n] = 3
                 self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_treble_buffer_size / 2))
                 first_treble_bar += 1
@@ -124,7 +136,11 @@ class CavaFFT:
             if n > 0:
                 if not first_bar:
                     self.fft_upper_cutoff[n-1] = self.fft_lower_cutoff[n] - 1
+
+                    # pushing the spectrum up if the exponential function gets "clumped" in the
+                    # bass and caluclating new cut off frequencies
                     if self.fft_lower_cutoff[n] <= self.fft_lower_cutoff[n-1]:
+                        # check if there is room for more first
                         room_for_more = False
 
                         if bar_buffer[n] == 1:
@@ -138,9 +154,11 @@ class CavaFFT:
                                 room_for_more = True
 
                         if room_for_more:
+                            # push the spectrum up
                             self.fft_lower_cutoff[n] = self.fft_lower_cutoff[n-1] + 1
                             self.fft_upper_cutoff[n - 1] = self.fft_lower_cutoff[n] - 1
 
+                            # calculate new cut off frequency
                             if bar_buffer[n] == 1:
                                 relative_cutoff[n] = self.fft_lower_cutoff[n] / (self.fft_bass_buffer_size / 2)
                             elif bar_buffer[n] == 2:
@@ -180,7 +198,9 @@ class CavaFFT:
 
         cava_out = np.zeros((self.num_bars, self.channels))
 
+        # process: separate frequency bands
         for n in range(self.num_bars):
+            # process: add upp FFT values within bands
             for i in range(int(self.fft_lower_cutoff[n]), int(self.fft_upper_cutoff[n]+1)):
                 if n <= self.bass_cutoff_bar:
                     cava_out[n, ::] += self.out_bass[i, ::]
@@ -188,9 +208,12 @@ class CavaFFT:
                     cava_out[n, ::] += self.out_mid[i, ::]
                 else:
                     cava_out[n, ::] += self.out_treble[i, ::]
+
+            # getting average multiply with eq
             cava_out[n, ::] /= self.fft_upper_cutoff[n] - self.fft_lower_cutoff[n] + 1
             cava_out[n, ::] *= self.eq[n]
 
+        # applying sens or getting max value
         for n in range(self.num_bars):
             if self.autosens:
                 cava_out[n, ::] *= self.sens
@@ -200,6 +223,7 @@ class CavaFFT:
                         self.average_max -= self.average_max / 64
                         self.average_max += cava_out[n, i] / 64
 
+        # process [smoothing]
         overshoot = False
         gravity_mod = ((60 / self.framerate) ** 2.5) * 1.54 / self.noise_reduction
         if gravity_mod < 1:
@@ -207,6 +231,7 @@ class CavaFFT:
 
         for n in range(self.num_bars):
             for i in range(self.channels):
+                # process [smoothing]: falloff
                 if cava_out[n, i] < self.prev_cava_out[n, i] and self.noise_reduction > 0.1:
                     cava_out[n, i] = self.cava_peak[n, i] * (1000 - (self.cava_fall[n, i]**2 * gravity_mod)) / 1000
                     if cava_out[n, i] < 0:
@@ -217,6 +242,7 @@ class CavaFFT:
                     self.cava_fall[n, i] = 0
                 self.prev_cava_out[n, i] = cava_out[n, i]
 
+                # process [smoothing]: integral
                 cava_out[n, i] = self.cava_mem[n, i] * self.noise_reduction + cava_out[n, i]
                 self.cava_mem[n, i] = cava_out[n, i]
                 if self.autosens:
@@ -226,10 +252,12 @@ class CavaFFT:
                     div = 1 / (diff + 1)
                     self.cava_mem[n, i] *= (1 - div / 20)
 
+                    # check if we overshoot target height
                     if cava_out[n, i] > 1000:
                         overshoot = True
                     cava_out[n, i] /= 1000
 
+        # calculating automatic sense adjustment
         if self.autosens:
             if overshoot:
                 self.sens *= 0.98
