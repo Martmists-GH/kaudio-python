@@ -1,0 +1,3 @@
+[submodule "libraries/bs2b/fftw/fftw_repo"]
+	path = libraries/bs2b/fftw/fftw_repo
+	url = https://github.com/FFTW/fftw3

@@ -4,7 +4,6 @@ import numpy as np
 from PySide2.QtWidgets import QWidget
 from kaudio.app.nodes.base_nodes import StereoNode
 from kaudio.app.utils.sounddevice_handler import device_map, open_stream
-from kaudio.nodes.base import BaseNode as KBaseNode
 from kaudio.nodes.util import (
     InputNode as InputNodeImpl,
     OutputNode as OutputNodeImpl
@@ -12,7 +11,7 @@ from kaudio.nodes.util import (
 from pyqtgraph import GraphicsLayoutWidget, BarGraphItem
 
 
-class InputNode(StereoNode):
+class InputNode(StereoNode[InputNodeImpl]):
     __identifier__ = "Devices"
     NODE_NAME = "Input Device"
 
@@ -21,7 +20,7 @@ class InputNode(StereoNode):
         self.stream = None
         self.config_combo("device",
                           "Input Device",
-                          [({"name": "-"}, -1)] + list(filter(lambda x: x[0]['max_input_channels'] >= 2, device_map().values())),
+                          lambda: [({"name": "-"}, -1)] + list(filter(lambda x: x[0]['max_input_channels'] >= 2, device_map().values())),
                           "-",
                           lambda it: it[0]["name"])
 
@@ -65,11 +64,11 @@ class InputNode(StereoNode):
             self.k_node.bufRight = list(arr[:1024, 1])
         super().process()
 
-    def get_node(self, stereo: bool) -> KBaseNode:
+    def get_node(self, stereo: bool) -> InputNodeImpl:
         return InputNodeImpl(True)
 
 
-class OutputNode(StereoNode):
+class OutputNode(StereoNode[OutputNodeImpl]):
     __identifier__ = "Devices"
     NODE_NAME = "Output Device"
 
@@ -81,7 +80,7 @@ class OutputNode(StereoNode):
         self.add_tab("frequencies")
         self.config_combo("device",
                           "Output Device",
-                          [({"name": "-"}, -1)] + list(filter(lambda x: x[0]['max_output_channels'] >= 2, device_map().values())),
+                          lambda: [({"name": "-"}, -1)] + list(filter(lambda x: x[0]['max_output_channels'] >= 2, device_map().values())),
                           "-",
                           lambda it: it[0]["name"])
         self.plot_signal_listener = lambda: None
@@ -173,5 +172,5 @@ class OutputNode(StereoNode):
             print("Underflowed")
             print(self.stream.write_available)
 
-    def get_node(self, stereo: bool) -> KBaseNode:
+    def get_node(self, stereo: bool) -> OutputNodeImpl:
         return OutputNodeImpl(True)
