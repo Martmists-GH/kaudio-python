@@ -65,7 +65,7 @@ class BaseNode(GraphBaseNode, Generic[N]):
         return in_data * win
 
     def create_frequencies_tab(self, widget: QWidget):
-        num_bars = 160
+        num_bars = 20
         cava = CavaFFT(num_bars, 1, True, 0.77, 50, 10_000)
 
         response_widget = GraphicsLayoutWidget()

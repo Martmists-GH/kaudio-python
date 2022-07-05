@@ -16,7 +16,7 @@ class CavaFFT:
         self.channels = channels
         self.num_bars = num_bars
         self.rate = 48000
-        self.sens = True
+        self.sens = 1
         self.autosens = autosens
         self.average_max = 0
         self.sens_init = True
@@ -73,7 +73,7 @@ class CavaFFT:
         for n in range(self.num_bars + 1):
             bar_distribution_coefficient = -frequency_constant
             bar_distribution_coefficient += (n + 1) / (num_bars + 1) * frequency_constant
-            self.cutoff_frequency[n] = upper_cutoff * 10 ** bar_distribution_coefficient
+            self.cutoff_frequency[n] = upper_cutoff * (10**bar_distribution_coefficient)
 
             if n > 0:
                 if self.cutoff_frequency[n-1] >= self.cutoff_frequency[n] and self.cutoff_frequency[n-1] > bass_cutoff:
@@ -91,10 +91,10 @@ class CavaFFT:
             self.eq[n] /= 2 ** 18
             self.eq[n] /= log2(self.fft_bass_buffer_size)
 
-            if self.cutoff_frequency[n] > bass_cutoff:
+            if self.cutoff_frequency[n] < bass_cutoff:
                 # BASS
                 bar_buffer[n] = 1
-                self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_bass_buffer_size / 2))
+                self.fft_lower_cutoff[n] = relative_cutoff[n] * (self.fft_bass_buffer_size / 2)
                 self.bass_cutoff_bar += 1
                 self.treble_cutoff_bar += 1
                 if self.bass_cutoff_bar > 0:
@@ -106,27 +106,27 @@ class CavaFFT:
             elif self.cutoff_frequency[n] < treble_cutoff:
                 # MID
                 bar_buffer[n] = 2
-                self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_mid_buffer_size / 2))
+                self.fft_lower_cutoff[n] = relative_cutoff[n] * (self.fft_mid_buffer_size / 2)
                 self.treble_cutoff_bar += 1
                 if self.treble_cutoff_bar - self.bass_cutoff_bar == 1:
                     first_bar = True
                     if n > 0:
-                        self.fft_upper_cutoff[n-1] = int(relative_cutoff[n] * (self.fft_bass_buffer_size / 2))
+                        self.fft_upper_cutoff[n-1] = relative_cutoff[n] * (self.fft_bass_buffer_size / 2)
                 else:
                     first_bar = False
 
-                if self.fft_lower_cutoff[n] > self.fft_treble_buffer_size / 2:
-                    self.fft_lower_cutoff[n] = self.fft_treble_buffer_size / 2
+                if self.fft_lower_cutoff[n] > self.fft_mid_buffer_size / 2:
+                    self.fft_lower_cutoff[n] = self.fft_mid_buffer_size / 2
 
             else:
                 # TREBLE
                 bar_buffer[n] = 3
-                self.fft_lower_cutoff[n] = int(relative_cutoff[n] * (self.fft_treble_buffer_size / 2))
+                self.fft_lower_cutoff[n] = relative_cutoff[n] * (self.fft_treble_buffer_size / 2)
                 first_treble_bar += 1
                 if first_treble_bar == 1:
                     first_bar = True
                     if n > 0:
-                        self.fft_upper_cutoff[n-1] = int(relative_cutoff[n] * (self.fft_bass_buffer_size / 2))
+                        self.fft_upper_cutoff[n-1] = relative_cutoff[n] * (self.fft_mid_buffer_size / 2)
                 else:
                     first_bar = False
 
@@ -180,7 +180,7 @@ class CavaFFT:
             self.frame_skip = 1
 
         self.input_buffer = np.roll(self.input_buffer, -num_samples, axis=0)
-        self.input_buffer[-num_samples::, ::] = input_data
+        self.input_buffer[-num_samples::, ::] = input_data[:num_samples, ::]
 
         idx = 0 if self.channels == 1 else slice()
 
